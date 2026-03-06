@@ -1,0 +1,427 @@
+// currency_exchange.hpp
+
+#pragma once
+#include <vector>
+#include <fstream>
+#include <limits>
+
+#include "person.hpp"
+#include "../terminal_utils/output.hpp"
+#include "../terminal_utils/config.hpp"
+#include "../terminal_utils/style_wrappers.hpp"
+#include "../terminal_utils/input.hpp"
+#include "../platform/platform.hpp"
+#include "../utils/string_utils.hpp"
+#include "../utils/utils.hpp"
+#include "bank/crtp_bank.hpp"
+
+
+// ============================================================
+// BankClient
+// Inherits shared persistence from PersistentEntity<BankClient>
+// Inherits shared person fields from Person
+// Only implements the 5 required CRTP hooks + its own business logic
+// ============================================================
+
+class CurrencyExchange : public PersistentEntity<CurrencyExchange>
+{
+    // ----------------------------------------------------------
+    // Types
+    // ----------------------------------------------------------
+    public:
+        // Richer result type so callers know exactly what went wrong
+        enum class SaveResult
+        {
+            succeeded,
+            failed_empty_object,
+            failed_currency_exists,
+            failed_cannot_update_currency
+        };
+
+    // ----------------------------------------------------------
+    // Data
+    // ----------------------------------------------------------
+    protected:
+        std::string m_country{};
+        std::string m_currency_code{};
+        std::string m_currency_name{};
+        double m_rate{};
+
+    // ----------------------------------------------------------
+    // Constructors
+    // ----------------------------------------------------------
+    public:
+        // Empty sentinel: returned when a lookup finds nothing
+        CurrencyExchange()
+            : PersistentEntity(Mode::empty_mode)
+        {}
+
+        // Full constructor used everywhere (UI, decode, factory helpers)
+        CurrencyExchange(
+                Mode        mode,
+                std::string country,
+                std::string currency_code,
+                std::string currency_name,
+                double       rate):
+                PersistentEntity(mode),
+                m_country(country),
+                m_currency_code(currency_code),
+                m_currency_name(currency_name),
+                m_rate(rate)
+        {}
+
+    // ----------------------------------------------------------
+    // Factory helpers
+    // ----------------------------------------------------------
+    public:
+        static CurrencyExchange make_empty()
+        {
+            return CurrencyExchange{};
+        }
+
+        // Creates a shell in add_mode with only a username set;
+        // caller fills in the rest via read_currency_info()
+        static CurrencyExchange make_new(std::string currency_code)
+        {
+            return CurrencyExchange(Mode::add_mode, "", std::move(currency_code), "", 0);
+        }
+
+    // ----------------------------------------------------------
+    // Required CRTP hooks
+    // ----------------------------------------------------------
+    public:
+        [[nodiscard]] static std::string_view file_name()
+        {
+            return terminal_utils::config::CURRENCY_EXCHANGE_FILE_NAME;
+        }
+
+        // line format: first#//#last#//#email#//#phone#//#account#//#pin#//#balance
+        [[nodiscard]] static CurrencyExchange decode(const std::string& line)
+        {
+            auto cd = stutl::String::split(line, SEPARATOR);
+
+            return CurrencyExchange(
+                Mode::update_mode,                                                   // loaded from file → ready to update
+                cd[0],                                                               // m_country
+                cd[1],                                                               // m_currency_code
+                cd[2],                                                               // m_currency_name
+                std::stod(cd[3])                                                     // m_rate
+            );
+        }
+
+        [[nodiscard]] std::string encode() const
+        {
+            return m_country              + std::string(SEPARATOR)
+                 + m_currency_code        + std::string(SEPARATOR)
+                 + m_currency_name        + std::string(SEPARATOR)
+                 + std::to_string(m_rate);
+        }
+
+        [[nodiscard]] std::string key() const
+        {
+            return m_currency_code;
+        }
+
+        [[nodiscard]] bool matches_key(std::string_view k) const
+        {
+            return m_currency_code == k;
+        }
+
+        static void sort(std::vector<CurrencyExchange>& records)
+        {
+            constexpr double epsilon = 1e-6;
+
+            std::stable_sort(records.begin(), records.end(), [](const CurrencyExchange& a, const CurrencyExchange& b)
+            {
+                double diff = a.m_rate - b.m_rate;
+
+                if (fabs(diff) > epsilon)
+                    return diff < 0.0;
+
+                // tie-breaker to preserve strict ordering
+                return a.m_currency_code < b.m_currency_code;
+            });
+        }
+
+    // ----------------------------------------------------------
+    // find() overload: by currency code
+    // ----------------------------------------------------------
+    public:
+        [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
+        {
+            for (auto& u : load_all())
+                if (u.m_currency_code == currency_code)
+                    return u;
+
+            return std::nullopt;
+        }
+
+        [[nodiscard]] static std::optional<std::vector<CurrencyExchange>> find_all(const std::string& currency_code)
+        {
+            std::vector<CurrencyExchange> currencies_with_same_code;
+            for(auto& u : load_all())
+                if(u.m_currency_code == currency_code)
+                    currencies_with_same_code.push_back(u);
+
+            if(currencies_with_same_code.empty())
+                return std::nullopt;
+
+            return currencies_with_same_code;
+        }
+
+    // ----------------------------------------------------------
+    // Richer save(): wraps base save() and returns SaveResult
+    // ----------------------------------------------------------
+    public:
+        SaveResult save_with_result()
+        {
+            if(is_empty())
+                return SaveResult::failed_empty_object;
+
+            if(_mode == Mode::add_mode && CurrencyExchange::exists(m_currency_code))
+                return SaveResult::failed_currency_exists;
+
+            // Delegate to PersistentEntity::save() for the actual I/O
+            if(!save())
+                return SaveResult::failed_cannot_update_currency;
+
+            return SaveResult::succeeded;
+        }
+
+
+    // ----------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------
+    public:
+        [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
+        {
+            switch (m)
+            {
+                case Mode::empty_mode:  return "empty";
+                case Mode::add_mode:    return "add";
+                case Mode::update_mode: return "update";
+                case Mode::delete_mode: return "delete";
+                default:                return "";
+            }
+        }
+
+        std::string get_currency_code() const
+        {
+            return m_currency_code;
+        }
+
+
+
+
+
+
+
+
+
+
+    // ----------------------------------------------------------
+    // UI — input
+    // ----------------------------------------------------------
+    public:
+        static std::string get_valid_currency_code(std::string_view msg = "Enter currency code: ")
+        {
+            while(true)
+            {
+                std::string currency_code = terminal_utils::input::get_string(msg, "");
+
+                std::transform(currency_code.begin(), currency_code.end(), currency_code.begin(), [](unsigned char ch)
+                {
+                    return static_cast<char>(std::toupper(ch));
+                });
+
+                if(CurrencyExchange::exists(currency_code))
+                    return currency_code;
+
+                std::cout << "\nNot a valid currency code.\n";
+            }
+        }
+
+        static void read_currency_info(CurrencyExchange& currency, std::string_view header)
+        {
+            std::cout << "\n\n" << header;
+            std::cout << "\n---------------------\n";
+
+            std::cout << "\nEnter Country Name: ";
+            currency.m_country = terminal_utils::input::get_string();
+
+            std::cout << "\nEnter the Country's Currency Name: ";
+            currency.m_currency_name = terminal_utils::input::get_string();
+
+            std::cout << "\nEnter The Exchange Rate To USD: ";
+            currency.m_rate = terminal_utils::input::get_number<double>();
+        }
+
+        static void read_new_currency_rate(CurrencyExchange& currency, std::string_view header)
+        {
+            std::cout << "\nEnter The Exchange Rate To USD: ";
+            currency.m_rate = terminal_utils::input::get_number<double>();
+        }
+
+    // ----------------------------------------------------------
+    // UI — display
+    // ----------------------------------------------------------
+    public:
+        void print_currency_details(bool show_index = false, int index = 0) const
+        {
+            terminal_utils::output::Table table;
+
+            if (show_index)
+            {
+                table.add_row({"Index", "Country", "Currency Code", "Currency Name", "Exchange Rate"});
+                table.add_row({std::to_string(index), m_country, m_currency_code, m_currency_name, std::to_string(m_rate)});
+            }
+            else
+            {
+                table.add_row({"Country", "Currency Code", "Currency Name", "Exchange Rate"});
+                table.add_row({m_country, m_currency_code, m_currency_name, std::to_string(m_rate)});
+            }
+
+            table.print(terminal_utils::output::Alignment::Center);
+        }
+
+        static void print_currency_details(std::vector<CurrencyExchange> currencies_with_same_code, bool show_index = false)
+        {
+            terminal_utils::output::Table table;
+
+            if (show_index)
+                table.add_row({"Index", "Country", "Currency Code", "Currency Name", "Exchange Rate"});
+            else
+                table.add_row({"Country", "Currency Code", "Currency Name", "Exchange Rate"});
+
+            for (size_t i = 0; i < currencies_with_same_code.size(); ++i)
+            {
+                const auto& c = currencies_with_same_code[i];
+                if (show_index)
+                    table.add_row_owned({std::to_string(i + 1), c.m_country, c.m_currency_code, c.m_currency_name, std::to_string(c.m_rate)});
+                else
+                    table.add_row_owned({c.m_country, c.m_currency_code, c.m_currency_name, std::to_string(c.m_rate)});
+            }
+
+            const std::string label = "List of (" + std::to_string(currencies_with_same_code.size()) + (currencies_with_same_code.size() == 1 ? ") currency:" : ") currencies:");
+
+            constexpr size_t PADDING = 4;
+            std::cout << terminal_utils::output::print_aligned(label, label.size() + PADDING, terminal_utils::output::Alignment::Right) << "\n";
+            table.print(terminal_utils::output::Alignment::Center);
+        }
+
+        static void list_available_currencies()
+        {
+            auto currencies = load_all();
+
+            if(currencies.empty())
+            {
+                std::cout << "No currencies found in the system.\n";
+                return;
+            }
+
+            print_currency_details(currencies);
+        }
+
+    // ----------------------------------------------------------
+    // UI — CRUD actions
+    // ----------------------------------------------------------
+    public:
+        static void add_currency()
+        {
+            CurrencyExchange user = CurrencyExchange::make_new(get_valid_currency_code());
+
+            terminal_utils::platform::clear_terminal();
+            read_currency_info(user, "Add Currency Data:");
+
+            switch (user.save_with_result())
+            {
+                case SaveResult::succeeded:
+                    terminal_utils::platform::clear_terminal();
+                    std::cout << "Currency data added successfully:\n";
+                    user.print_currency_details();
+                    break;
+
+                default:
+                    terminal_utils::platform::clear_terminal();
+                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " while saving the file.\n";
+                    break;
+            }
+        }
+
+        static CurrencyExchange select_from_matches(const std::vector<CurrencyExchange>& matches)
+        {
+            if (matches.size() == 1) // single element
+                return matches[0];
+
+            // multiple elements
+            print_currency_details(matches, true);
+            const int choice = terminal_utils::input::get_number_in_range<int>(
+                "Choose which country: ", "Invalid option, try again: ", 1, matches.size());
+            return matches[choice - 1];
+        }
+
+        static void update_currency()
+        {
+            auto from_matches = CurrencyExchange::find_all(get_valid_currency_code());
+
+            // std::vector<CurrencyExchange> currency = *from_matches;
+
+            terminal_utils::platform::clear_terminal();
+            CurrencyExchange selected = select_from_matches(*from_matches);
+
+            selected.set_mode(Mode::update_mode);
+
+            switch(selected.save_with_result())
+            {
+                case SaveResult::succeeded: // ignore IntelliSense false positive (error 2373)
+                    terminal_utils::platform::clear_terminal();
+                    std::cout << "currency data updated successfully:\n";
+                    selected.print_currency_details();
+                    break;
+
+                default:
+                    terminal_utils::platform::clear_terminal();
+                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " couldn't update the currency data.\n";
+                    break;
+            }
+        }
+
+        double to_USD(double amount) const
+        {
+            return amount / this->m_rate;
+        }
+
+        double from_USD(double amount) const
+        {
+            return amount * this->m_rate;
+        }
+
+        static void convert_currency()
+        {
+            // `get_valid_currency_code()` guarantees existence
+            auto from_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert from: "));
+
+            std::vector<CurrencyExchange> currency_from = *from_matches;
+
+            auto to_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert to: "));
+
+            std::vector<CurrencyExchange> currency_to = *to_matches;
+
+            terminal_utils::platform::clear_terminal();
+            CurrencyExchange source = select_from_matches(*from_matches);
+
+            terminal_utils::platform::clear_terminal();
+            CurrencyExchange target = select_from_matches(*to_matches);
+
+            terminal_utils::platform::clear_terminal();
+
+            double input_amount = terminal_utils::input::get_number<double>("Enter amount to exchange: ", "Invalid number: ");
+
+            terminal_utils::platform::clear_terminal();
+
+            const double result = target.from_USD(source.to_USD(input_amount));
+
+            std::cout << input_amount << " " << source.m_currency_code << " = "
+                      << result << " " << target.m_currency_code << "\n";
+        }
+};
