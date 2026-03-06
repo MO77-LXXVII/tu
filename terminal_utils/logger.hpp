@@ -123,7 +123,7 @@ namespace utils
         private:
             Logger()
             {
-                _log_file.open(terminal_utils::config::PROGRAM_NAME.data(), std::ios::app);
+                _log_file.open(terminal_utils::config::LOG_FILE.data(), std::ios::app);
             }
 
             ~Logger()
