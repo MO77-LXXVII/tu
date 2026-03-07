@@ -30,7 +30,19 @@ namespace terminal_utils
         Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
     };
     
-    // bitmask enum
+
+
+    /**
+     * @brief Text style attributes as a bitmask enum
+     * 
+     * This enum uses power-of-two values so multiple styles can be combined
+     * using bitwise OR (|). For example: `Style::Bold | Style::Underline`
+     * 
+     * Maps to standard ANSI style codes (1-9) for terminal text formatting.
+     * 
+     * @see `has_style()` to check if a particular style is set
+     * @see `operator|()` for combining styles
+     */
     enum class Style
     {
         None = 0,
