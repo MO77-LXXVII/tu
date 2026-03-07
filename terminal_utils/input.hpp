@@ -96,9 +96,16 @@ namespace terminal_utils::input
         return std::nullopt;
     }
 
-
-    // Get single character for menu navigation (handles buffering internally)
-    inline std::optional<char> get_menu_key(terminal_utils::ColouredText prompt) noexcept
+    /**
+     * @brief Reads a single character from `stdin` for menu navigation
+     *
+     * @param prompt  Prompt to display before reading
+     *
+     * @return The character read, or `std::nullopt` on `EOF`
+     *
+     * @note Discards the remainder of the line unless the character read was `'\n'`
+     */
+    inline std::optional<char> get_menu_key(const terminal_utils::ColouredText& prompt) noexcept
     {
         std::cout << prompt;
         char c;
@@ -106,7 +113,7 @@ namespace terminal_utils::input
         if(std::cin.get(c))
         {
             // Only discard if we didn't read a newline
-            if (c != '\n')
+            if(c != '\n')
                 discard_rest_of_line();
 
             return c;
@@ -165,6 +172,7 @@ namespace terminal_utils::input
         }
     }
 
+
     template <typename T>
     T get_number(std::string_view prompt = "", std::string_view error_msg = "")
     {
@@ -180,6 +188,7 @@ namespace terminal_utils::input
         }
     }
 
+
     inline std::string get_string(std::string_view prompt = "", std::string_view error_msg = "")
     {
         while (true)
@@ -193,6 +202,7 @@ namespace terminal_utils::input
             std::cout << error_msg << "\n";
         }
     }
+
 
     /**
      * @brief reads a full line from `stdin`, **skipping leading whitespace**
