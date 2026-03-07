@@ -276,11 +276,21 @@ namespace terminal_utils
                 }
             }
 
+
+
+            /**
+             * @brief applies all active style flags in `styles` to the output stream
+             * 
+             * iterates over all known `Style` flags and writes the corresponding
+             * ANSI escape sequence for each one that is set in `styles`
+             * 
+             * @param os     the output stream to write to
+             * @param styles the combined `Style` bitmask to apply
+             */
             static void apply_styles(std::ostream& os, Style styles)
             {
-                using st = Style; // Type alias
-                constexpr std::array<Style, 8> all_styles_array{st::Dim, st::Bold, st::Italic, st::Underline,
-                                                                st::Blink, st::Reverse, st::Hidden, st::Strikethrough};
+                constexpr std::array<Style, 8> all_styles_array{Style::Dim, Style::Bold, Style::Italic, Style::Underline,
+                                                                Style::Blink, Style::Reverse, Style::Hidden, Style::Strikethrough};
 
                 for(const Style s : all_styles_array)
                     if(has_style(styles, s))
