@@ -43,14 +43,22 @@ namespace terminal_utils::input
         };
     }
 
-    // Clear input buffer after failed extraction
+    /**
+     * @brief Clears `failbit` and discards the remainder of the current line
+     *
+     * @note Call after a failed extraction to reset the stream for the next read
+     */
     inline void clear_failed_input() noexcept
     {
         std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    // Discard rest of line after successful extraction
+    /**
+     * @brief Discards the remainder of the current line
+     *
+     * @note Call after a successful extraction to consume any trailing input
+     */
     inline void discard_rest_of_line() noexcept
     {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
