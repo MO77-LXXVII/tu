@@ -13,11 +13,20 @@
 
 namespace terminal_utils
 {
+    /**
+     * @brief ANSI terminal colour codes for foreground text
+     * 
+     * These correspond to standard ANSI escape sequences for
+     * setting text colour in compatible terminals.
+     *
+     * When `ENABLE_COLOURS` is true and terminal supports ANSI, these
+     * will be rendered as coloured text.
+     */
     enum class Colour
     {
-        None,
-        Reset,
-        ResetColour,
+        None,         ///< No colour change (use default)
+        Reset,        ///< Reset all attributes (colour, style, etc.)
+        ResetColour,  ///< Reset only colour, keep other styles
         Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
     };
     
