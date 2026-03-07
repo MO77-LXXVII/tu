@@ -26,10 +26,15 @@ namespace terminal_utils::input
 
                 ~InputGuard()
                 {
-                    std::cin.clear(old_state_);
-
                     if(discard_)
+                    {
+                        // Clear any error state temporarily to allow `ignore()` to work
+                        std::cin.clear();
                         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                    }
+
+                    // Restore original state (which might include failbit)
+                    std::cin.clear(old_state_);
                 }
 
                 InputGuard(const InputGuard&) = delete;
