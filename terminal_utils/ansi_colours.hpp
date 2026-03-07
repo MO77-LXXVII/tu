@@ -143,6 +143,7 @@ namespace terminal_utils
                 : _text(std::move(text)), _colour(colour), _style(style)
                 {}
 
+            // _colour = Colour::None, _style = Style::None via member init
             ColouredText() = default;
 
             friend std::ostream& operator<<(std::ostream& os, const ColouredText& ct);
@@ -164,8 +165,8 @@ namespace terminal_utils
 
         private:
             std::string _text;
-            Colour _colour;
-            Style _style;
+            Colour _colour   = Colour::None;
+            Style _style     = Style::None;
 
             /**
              * @brief returns the ANSI escape sequence string corresponding to a Colour enum
