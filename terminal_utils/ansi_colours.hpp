@@ -130,6 +130,7 @@ namespace terminal_utils
         template<typename T> std::ostream& operator<<(std::ostream&, const Aligned<T>&);
     }
 
+
     /**
      * @brief small value object that bundles text with formatting metadata (colour + style)
      * 
@@ -157,23 +158,34 @@ namespace terminal_utils
 
             template<typename T>
             friend std::ostream& output::operator<<(std::ostream&, const output::Aligned<T>&);
-        
-            // accumulates multiple styles via bitwise OR
+
+
+            /**
+             * @brief accumulates a `Style` flag into the current `_style` bitmask via bitwise OR
+             * 
+             * @param s the `Style` flag to add
+             */
             inline constexpr void add_style(Style s)
             {
                 _style |= s;
             }
 
-            // sets a single colour
+
+            /**
+             * @brief set the text `colour`
+             * 
+             * @param `c` the `colour` to apply
+             */
             inline constexpr void set_colour(Colour c)
             {
                 _colour = c;
             }
 
+
         private:
-            std::string _text;
-            Colour _colour   = Colour::None;
-            Style _style     = Style::None;
+            std::string _text;                ///< The actual text content to display
+            Colour _colour   = Colour::None;  ///< Current text colour (default: no colour)
+            Style _style     = Style::None;   ///< Current text style flags (default: no styles)
 
             /**
              * @brief returns the ANSI escape sequence string corresponding to a Colour enum
