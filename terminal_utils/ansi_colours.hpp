@@ -139,11 +139,18 @@ namespace terminal_utils
     class ColouredText
     {
         public:
+            /**
+             * @brief constructs a `ColouredText` with the given text and optional formatting
+             * 
+             * @param text   the text to display: ownership is taken via `std::move`
+             * @param colour foreground colour (default: `Colour::None`)
+             * @param style  text style bitmask (default: `Style::None`)
+             */
             ColouredText(std::string text, Colour colour = Colour::None, Style style = Style::None)
                 : _text(std::move(text)), _colour(colour), _style(style)
                 {}
 
-            // _colour = Colour::None, _style = Style::None via member init
+            /** @brief default constructor: initializes `_colour` to `Colour::None` and `_style` to `Style::None` */
             ColouredText() = default;
 
             friend std::ostream& operator<<(std::ostream& os, const ColouredText& ct);
