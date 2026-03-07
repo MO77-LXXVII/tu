@@ -341,6 +341,10 @@ namespace terminal_utils
          * text length (excluding ANSI escape codes) for padding calculations,
          * then outputs the `ColouredText` with its ANSI codes intact.
          * 
+         * @note without this specialization, padding would be calculated correctly,
+         * but if the generic version of `Aligned` tried to measure length through `operator<<`
+         * it would include ANSI codes in the length calculation, making the padding wrong
+         *
          * @param os the output stream to write to
          * @param a  the `Aligned<ColouredText>` object containing alignment settings
          * @return reference to `os` for chaining
@@ -353,12 +357,17 @@ namespace terminal_utils
 
             // Direct access to _text since we're a friend
             const std::string& text = a.value._text;
-
-            if (a.align == Alignment::Center)
+            if(a.align == Alignment::Center)
             {
-                int padding = (a.width - 2 - static_cast<int>(text.length())) / 2;
+                /*
+                    `/ 2`: splits padding equally left and right
+                    in case of odd padding integer division truncates
+                    so the remainder goes to `right_pad`
+                */
+                const int padding = (a.width - static_cast<int>(text.length())) / 2;
+
                 int left_pad = std::max(0, padding);
-                int right_pad = std::max(0, a.width - 2 - left_pad - static_cast<int>(text.length()));
+                int right_pad = std::max(0, a.width - left_pad - static_cast<int>(text.length()));
 
                 os << std::string(left_pad, a.fill) 
                 << a.value  // Outputs text stored in ColouredText with ANSI codes
@@ -367,7 +376,7 @@ namespace terminal_utils
 
             else
             {
-                int padding = a.width - static_cast<int>(text.length());
+                const int padding = a.width - static_cast<int>(text.length());
 
                 if (a.align == Alignment::Left)
                     os << a.value << std::string(std::max(0, padding), a.fill);
