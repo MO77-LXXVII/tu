@@ -330,13 +330,25 @@ namespace terminal_utils
         return os;
     }
 
+
     // Specialization must be in output namespace 
-    namespace output
+    namespace output    
     {
-        // template specialization for ColouredText
+        /**
+         * @brief template specialization of `operator<<` for `Aligned<ColouredText>`
+         * 
+         * handles alignment padding correctly for `ColouredText` by using the raw
+         * text length (excluding ANSI escape codes) for padding calculations,
+         * then outputs the `ColouredText` with its ANSI codes intact.
+         * 
+         * @param os the output stream to write to
+         * @param a  the `Aligned<ColouredText>` object containing alignment settings
+         * @return reference to `os` for chaining
+         */
         template<>
         inline std::ostream& operator<<(std::ostream& os, const Aligned<ColouredText>& a)
         {
+            // FormatGuard restores stream flags and fill character on destruction (RAII)
             FormatGuard guard(os);
 
             // Direct access to _text since we're a friend
@@ -360,7 +372,7 @@ namespace terminal_utils
                 if (a.align == Alignment::Left)
                     os << a.value << std::string(std::max(0, padding), a.fill);
 
-                else // Right
+                else // Alignment::Right
                     os << std::string(std::max(0, padding), a.fill) << a.value;
             }
 
