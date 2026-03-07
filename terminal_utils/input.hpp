@@ -129,7 +129,7 @@ namespace terminal_utils::input
      *
      * @note Any characters typed before Enter are discarded
      * 
-     * @example For "press Enter to continue": waits for actual Enter
+     * @note For "press Enter to continue": waits for actual Enter
      */
     inline void wait_for_enter() noexcept
     {
@@ -297,7 +297,7 @@ namespace terminal_utils::input
 
 
     /**
-     * @brief orompts the user for a yes/no decision, retrying until `'y'` or `'n'` is entered
+     * @brief prompts the user for a yes/no decision, retrying until `'y'` or `'n'` is entered
      *
      * @param prompt  optional prompt to display before reading
      *
