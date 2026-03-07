@@ -96,6 +96,7 @@ namespace terminal_utils::input
         return std::nullopt;
     }
 
+
     /**
      * @brief Reads a single character from `stdin` for menu navigation
      *
@@ -121,6 +122,7 @@ namespace terminal_utils::input
 
         return std::nullopt;
     }
+
 
     /**
      * @brief Blocks until the user presses Enter
@@ -158,7 +160,18 @@ namespace terminal_utils::input
     }
 
 
-    // Get input with validation predicate
+    /**
+     * @brief reads a value of type `T` from `stdin`, retrying until the value satisfies the `Predicate`
+     *
+     * @tparam T          Type to read
+     * @tparam Predicate  callable with signature `bool(const T&)`
+     *
+     * @param prompt     Optional prompt to display before each read
+     * @param error_msg  message to display when validation fails
+     * @param validator  predicate to validate the input
+     *
+     * @return The first value that satisfies the predicate
+     */
     template<typename T, typename Predicate>
     T get_validated_input(std::string_view prompt, std::string_view error_msg, Predicate&& validator)
     {
@@ -166,7 +179,6 @@ namespace terminal_utils::input
         {
             if(!prompt.empty())
                 std::cout << prompt;
-
 
             auto result = try_get_input<T>("");
 
