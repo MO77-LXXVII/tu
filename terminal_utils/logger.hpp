@@ -19,7 +19,8 @@ namespace utils
         Info,
         Warning,
         Error,
-        Exception
+        Exception,
+        Critical
     };
 
     namespace
@@ -120,6 +121,13 @@ namespace utils
                 print_separator(_log_file);
             }
 
+            void critical(std::string_view msg)
+            {
+                log(LogLevel::Critical, msg);
+                _log_file.flush();
+                print_separator(_log_file);
+            }
+
         private:
             Logger()
             {
@@ -162,6 +170,7 @@ namespace utils
                     case LogLevel::Warning:   return "WARN ";
                     case LogLevel::Error:     return "ERROR";
                     case LogLevel::Exception: return "Exception";
+                    case LogLevel::Critical:  return "CRITICAL ";
                     default:                  return "?????";
                 }
             }
@@ -178,5 +187,6 @@ namespace utils
     #define LOG_WARNING(msg)   utils::Logger::instance().warning(msg)
     #define LOG_ERROR(msg)     utils::Logger::instance().error(msg)
     #define LOG_EXCEPTION(msg) utils::Logger::instance().exception(msg)
+    #define LOG_CRITICAL(msg)  utils::Logger::instance().critical(msg)
 
 } // namespace utils
