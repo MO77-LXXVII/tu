@@ -49,6 +49,7 @@ namespace terminal_utils::input
         };
     }
 
+
     /**
      * @brief Clears `failbit` and discards the remainder of the current line
      *
@@ -60,6 +61,7 @@ namespace terminal_utils::input
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
+
     /**
      * @brief Discards the remainder of the current line
      *
@@ -70,7 +72,14 @@ namespace terminal_utils::input
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    // Get single character for menu navigation (handles buffering internally)
+
+    /**
+     * @brief Reads a single character from `stdin` for menu navigation
+     *
+     * @return The character read, or `std::nullopt` on `EOF`
+     *
+     * @note Discards the remainder of the line unless the character read was `'\n'`
+     */
     inline std::optional<char> get_menu_key() noexcept
     {
         char c;
@@ -78,7 +87,7 @@ namespace terminal_utils::input
         if(std::cin.get(c))
         {
             // Only discard if we didn't just read a newline
-            if (c != '\n')
+            if(c != '\n')
                 discard_rest_of_line();
 
             return c;
@@ -86,6 +95,7 @@ namespace terminal_utils::input
 
         return std::nullopt;
     }
+
 
     // Get single character for menu navigation (handles buffering internally)
     inline std::optional<char> get_menu_key(terminal_utils::ColouredText prompt) noexcept
@@ -95,7 +105,7 @@ namespace terminal_utils::input
 
         if(std::cin.get(c))
         {
-            // Only discard if we didn't just read a newline
+            // Only discard if we didn't read a newline
             if (c != '\n')
                 discard_rest_of_line();
 
@@ -104,6 +114,7 @@ namespace terminal_utils::input
 
         return std::nullopt;
     }
+
 
     // For "press Enter to continue" - waits for actual Enter
     inline void wait_for_enter() noexcept
