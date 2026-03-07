@@ -13,7 +13,13 @@ namespace terminal_utils::input
 {
     namespace
     {
-        // RAII wrapper for input state management
+        /**
+         * @brief RAII guard that restores `std::cin` state and optionally discards
+         *        the remainder of the current line on destruction
+         *
+         * @note temporarily clears error state to allow `ignore()` to work,
+         *       then restores the original stream state; which may include `failbit`
+         */
         class InputGuard
         {
             public:
