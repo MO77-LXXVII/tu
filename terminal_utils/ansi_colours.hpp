@@ -277,7 +277,6 @@ namespace terminal_utils
             }
 
 
-
             /**
              * @brief applies all active style flags in `styles` to the output stream
              * 
