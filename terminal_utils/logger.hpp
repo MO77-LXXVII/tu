@@ -29,6 +29,11 @@ namespace utils
         {
             _log_file << "--------------------" << std::endl; // append separator 
         }
+
+        void print_separator_critical(std::ofstream& _log_file)
+        {
+            _log_file << "====================" << std::endl; // append separator 
+        }
     }
 
     class Logger
@@ -117,15 +122,22 @@ namespace utils
             void exception(std::string_view msg)
             {
                 log(LogLevel::Exception, msg);
-                _log_file.flush();
-                print_separator(_log_file);
+
+                if(_file_enabled && _log_file.is_open())
+                    print_separator(_log_file); // program terminated via an exception
             }
 
             void critical(std::string_view msg)
             {
+                bool file_active = (_file_enabled && _log_file.is_open());
+
+                if(file_active)
+                    print_separator_critical(_log_file);
+
                 log(LogLevel::Critical, msg);
-                _log_file.flush();
-                print_separator(_log_file);
+
+                if(file_active)
+                    print_separator_critical(_log_file);
             }
 
         private:
@@ -138,7 +150,7 @@ namespace utils
             {
                 if (_log_file.is_open())
                 {
-                    print_separator(_log_file);
+                    print_separator(_log_file); // program ended normally
                     _log_file.close();
                 }
             }
