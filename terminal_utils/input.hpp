@@ -161,8 +161,17 @@ namespace terminal_utils::input
         }
     }
 
-    // skips leading whitespace
-    inline std::string get_line(std::string_view prompt = "", std::string error_msg = "")
+    /**
+     * @brief reads a full line from `stdin`, **skipping leading whitespace**
+     *
+     * @param prompt     optional prompt to display before reading
+     * @param error_msg  optional message to display on recoverable input failure
+     *
+     * @return the line read, or `std::nullopt` on `EOF`
+     *
+     * @note `std::ws` skips leading whitespace including leftover newlines from previous input
+     */
+    inline std::optional<std::string> get_line(std::string_view prompt = "", std::string error_msg = "")
     {
         while (true)
         {
@@ -170,10 +179,16 @@ namespace terminal_utils::input
                 std::cout << prompt;
 
             std::string line;
-            if (std::getline(std::cin >> std::ws, line))
+            if(std::getline(std::cin >> std::ws, line))
                 return line;
 
-            std::cout << bold(red(underline(error_msg)));
+            if(std::cin.eof())
+                return std::nullopt;
+
+            std::cout << error_msg << "\n";
+
+            // clear failbit to allow retry if reached
+            // `eofbit` is already handled at this point
             std::cin.clear();
         }
     }
