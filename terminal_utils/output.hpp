@@ -54,6 +54,7 @@ namespace terminal_utils::output
 
     // format descriptor struct to hold formatting parameters
     // delay actual printing until `operator<<`
+    // `width` is a minimum, not a maximum: caller must ensure text fits or it will overflow
     template<typename T>
     struct Aligned
     {
