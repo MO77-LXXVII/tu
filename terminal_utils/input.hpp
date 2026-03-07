@@ -295,7 +295,14 @@ namespace terminal_utils::input
         );
     }
 
-    // Get yes/no decision
+
+    /**
+     * @brief orompts the user for a yes/no decision, retrying until `'y'` or `'n'` is entered
+     *
+     * @param prompt  optional prompt to display before reading
+     *
+     * @return `true` for `'y'`/`'Y'`, `false` for `'n'`/`'N'`
+     */
     inline bool get_yes_no(std::string_view prompt = "")
     {
         if(!prompt.empty())
@@ -315,7 +322,7 @@ namespace terminal_utils::input
                 if(upper == 'N')
                     return false;
             }
-            std::cout << "Please enter " << "'y'" <<  " for yes or " << "'n'" << " for no.\n";
+            std::cout << "Please enter " << "'y'" << " for yes or " << "'n'" << " for no.\n";
         }
     }
 } // namespace terminal_utils::input
