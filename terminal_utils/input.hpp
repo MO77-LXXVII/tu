@@ -190,6 +190,16 @@ namespace terminal_utils::input
     }
 
 
+    /**
+     * @brief reads a number of type `T` from `stdin`, retrying until a valid value is read
+     *
+     * @tparam T numeric type to read
+     *
+     * @param prompt     optional prompt to display before each read
+     * @param error_msg  message to display on invalid input
+     *
+     * @return The first successfully parsed value
+     */
     template <typename T>
     T get_number(std::string_view prompt = "", std::string_view error_msg = "")
     {
