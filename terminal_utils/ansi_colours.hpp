@@ -130,9 +130,12 @@ namespace terminal_utils
         template<typename T> std::ostream& operator<<(std::ostream&, const Aligned<T>&);
     }
 
-    // small value object that bundles text with the formatting metadata (colour + style).
-    // stores the text internally & keeps it for later rendering
-    // does not depend on caller "lifetime"
+    /**
+     * @brief small value object that bundles text with formatting metadata (colour + style)
+     * 
+     * stores the text internally, so it does not depend on the caller's lifetime.
+     * safe to store and render later without dangling reference concerns.
+     */
     class ColouredText
     {
         public:
