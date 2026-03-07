@@ -51,11 +51,15 @@ namespace terminal_utils
         return ColouredText{std::move(text), Colour::Black};
     }
 
-    // Chaining on existing object:
+    /*
+        Chaining on existing object:
+        note: `base` is a function parameter, NRVO is excluded (C++ standard, [class.copy.elision])
+            all functions in this section use implicit move on return
+    */
     [[nodiscard]] inline ColouredText red(ColouredText base)
     {
         base.set_colour(Colour::Red);
-        return base; // NRVO if possible; otherwise implicit move
+        return base;
     }
 
     [[nodiscard]] inline ColouredText green(ColouredText base)
@@ -145,7 +149,11 @@ namespace terminal_utils
         return ColouredText{std::move(text), Colour::None, Style::Strikethrough};
     }
 
-    // Chaining (stack styles)
+    /*
+        Chaining (stack styles)
+        note: `base` is a function parameter, NRVO is excluded (C++ standard, [class.copy.elision])
+              all functions in this section use implicit move on return
+    */
     [[nodiscard]] inline ColouredText bold(ColouredText base)
     {
         base.add_style(Style::Bold);
