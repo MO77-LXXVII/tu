@@ -96,7 +96,11 @@ namespace terminal_utils
             Colour _colour;
             Style _style;
 
-            // returns the ANSI escape sequence string corresponding to a Colour enum
+            /**
+             * @brief returns the ANSI escape sequence string corresponding to a Colour enum
+             * @note  returns `std::string_view` to string literals, which have static storage duration.
+             *        this is safe because string literals live for the entire program lifetime.
+             */
             [[nodiscard]] static constexpr std::string_view get_colour_code(Colour c)
             {
                 switch(c)
@@ -109,37 +113,42 @@ namespace terminal_utils
 
                     case Colour::ResetColour:
                         return "\033[39m"; // resets colour only
-                        
+
                     case Colour::Black:
                         return "\033[30m";
-                        
+
                     case Colour::Red:
                         return "\033[31m";
-                        
+
                     case Colour::Green:
                         return "\033[32m";
-                        
+
                     case Colour::Yellow:
                         return "\033[33m";
-                        
+
                     case Colour::Blue:
                         return "\033[34m";
-                        
+
                     case Colour::Magenta:
                         return "\033[35m";
-                        
+
                     case Colour::Cyan:
                         return "\033[36m";
-                        
+
                     case Colour::White:
                         return "\033[37m";
-                    
-                    default:
+
+                    default: // unreachable as all enum values are handled above (suppressing compiler warnings)
                         return "";
                 }
             }
 
-            // same as get_colour_code, but for styles
+
+            /**
+             * @brief returns the ANSI escape sequence string corresponding to a Style enum
+             * @note  returns `std::string_view` to string literals, which have static storage duration.
+             *        this is safe because string literals live for the entire program lifetime.
+             */
             [[nodiscard]] static constexpr std::string_view get_style_code(Style s)
             {
                 switch(s)
@@ -171,7 +180,7 @@ namespace terminal_utils
                     case Style::Strikethrough:
                         return "\033[9m";    
 
-                    default:
+                    default:  // unreachable as all enum values are handled above (suppressing compiler warnings)
                         return "";
                 }
             }
