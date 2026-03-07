@@ -9,9 +9,6 @@
 #include <cctype>
 #include <type_traits>
 
-#include "ansi_colours.hpp"
-#include "style_wrappers.hpp"
-
 namespace terminal_utils::input
 {
     namespace
@@ -100,6 +97,13 @@ namespace terminal_utils::input
         discard_rest_of_line();
     }
 
+
+    /**
+     * @brief Attempts to read a value of type T from stdin
+     *
+     * @note Always discards the remainder of the line after extraction,
+     *       whether it succeeds or fails; callers do not need to manually clear the buffer
+     */
     template<typename T>
     std::optional<T> try_get_input(std::string_view prompt = "")
     {
@@ -109,15 +113,17 @@ namespace terminal_utils::input
         InputGuard guard;
 
         T value;
+
         if(std::cin >> value)
             return value;
 
         return std::nullopt;
     }
 
+
     // Get input with validation predicate
     template<typename T, typename Predicate>
-    T get_validated_input(const std::string& prompt, const std::string& error_msg, Predicate&& validator)
+    T get_validated_input(std::string_view prompt, std::string_view error_msg, Predicate&& validator)
     {
         while(true)
         {
@@ -130,25 +136,26 @@ namespace terminal_utils::input
             if(result && validator(*result))
                 return *result;
 
-            std::cout << bold(red(underline(error_msg))) << "\n";
+            std::cout << error_msg << "\n";
         }
     }
 
     template <typename T>
-    T get_number(std::string_view prompt = "", std::string error_msg = "")
+    T get_number(std::string_view prompt = "", std::string_view error_msg = "")
     {
         while (true)
         {
             if(!prompt.empty())
                 std::cout << prompt;
 
-            if (auto result = try_get_input<T>(""))
+            if(auto result = try_get_input<T>(""))
                 return *result;
-            std::cout << bold(red(underline(error_msg)));
+
+            std::cout << error_msg << "\n";
         }
     }
 
-    inline std::string get_string(std::string_view prompt = "", std::string error_msg = "")
+    inline std::string get_string(std::string_view prompt = "", std::string_view error_msg = "")
     {
         while (true)
         {
@@ -157,7 +164,8 @@ namespace terminal_utils::input
 
             if(auto result = try_get_input<std::string>(""))
                 return *result;
-            std::cout << bold(red(underline(error_msg)));
+
+            std::cout << error_msg << "\n";
         }
     }
 
@@ -171,7 +179,7 @@ namespace terminal_utils::input
      *
      * @note `std::ws` skips leading whitespace including leftover newlines from previous input
      */
-    inline std::optional<std::string> get_line(std::string_view prompt = "", std::string error_msg = "")
+    inline std::optional<std::string> get_line(std::string_view prompt = "", std::string_view error_msg = "")
     {
         while (true)
         {
@@ -195,7 +203,7 @@ namespace terminal_utils::input
 
     // Get number in range
     template<typename T>
-    T get_number_in_range(const std::string& prompt, const std::string& error_msg, T min, T max)
+    T get_number_in_range(std::string_view prompt, std::string_view error_msg, T min, T max)
     {
         return get_validated_input<T>(prompt, error_msg,
             [min, max](const T& value)
@@ -206,10 +214,10 @@ namespace terminal_utils::input
     }
 
     // Get yes/no decision
-    inline bool get_yes_no(const std::string& prompt = "")
+    inline bool get_yes_no(std::string_view prompt = "")
     {
         if(!prompt.empty())
-            std::cout << magenta(bold(underline(prompt)));
+            std::cout << prompt;
 
         while(true)
         {
@@ -225,7 +233,7 @@ namespace terminal_utils::input
                 if(upper == 'N')
                     return false;
             }
-            std::cout << "Please enter " << underline(blue("'y'")) <<  " for yes or " << underline(blue("'n'")) << " for no.\n";
+            std::cout << "Please enter " << "'y'" <<  " for yes or " << "'n'" << " for no.\n";
         }
     }
 } // namespace terminal_utils::input
