@@ -271,7 +271,19 @@ namespace terminal_utils::input
         }
     }
 
-    // Get number in range
+
+    /**
+     * @brief reads a number of type `T` from `stdin`, retrying until the value is within `[min, max]`
+     *
+     * @tparam T  numeric type to read
+     *
+     * @param prompt     optional prompt to display before each read
+     * @param error_msg  message to display when the value is out of range
+     * @param min        minimum accepted value (inclusive)
+     * @param max        maximum accepted value (inclusive)
+     *
+     * @return the first value in the range `[min, max]`
+     */
     template<typename T>
     T get_number_in_range(std::string_view prompt, std::string_view error_msg, T min, T max)
     {
