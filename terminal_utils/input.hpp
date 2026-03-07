@@ -122,8 +122,13 @@ namespace terminal_utils::input
         return std::nullopt;
     }
 
-
-    // For "press Enter to continue" - waits for actual Enter
+    /**
+     * @brief Blocks until the user presses Enter
+     *
+     * @note Any characters typed before Enter are discarded
+     * 
+     * @example For "press Enter to continue": waits for actual Enter
+     */
     inline void wait_for_enter() noexcept
     {
         discard_rest_of_line();
