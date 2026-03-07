@@ -29,7 +29,6 @@ namespace terminal_utils
         ResetColour,  ///< Reset only colour, keep other styles
         Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
     };
-    
 
 
     /**
@@ -56,24 +55,72 @@ namespace terminal_utils
         Strikethrough = 1 << 7
     };
 
+
+    // Underlying integer type for `Style enum` (used for bitwise operations)
+    // `style_ut` is a shorthand for `style underlying type`
     using style_ut = std::underlying_type_t<Style>;
 
-    // Allow bitwise operations on Style
+
+    /**
+     * @brief Bitwise OR operator for combining `Style` flags
+     * 
+     * Allows multiple styles to be combined naturally:
+     * @code
+     * Style my_style = Style::Bold | Style::Underline;
+     * @endcode
+     * 
+     * @param a First `Style` value
+     * @param b Second `Style` value
+     * @return Combined `Style` with bits from both operands
+     * 
+     * @note this operator allow `Style` to behave like a proper bitmask type,
+     * enabling intuitive syntax while maintaining type safety through
+     * explicit casts to/from the underlying type
+     */
     inline constexpr Style operator|(Style a, Style b)
     {
         return static_cast<Style>(static_cast<style_ut>(a) | static_cast<style_ut>(b));
     }
 
+
+    /**
+     * @brief Compound assignment OR operator for Style flags
+     * 
+     * @param a `Style` to modify (left-hand side)
+     * @param b `Style` to combine in (right-hand side)
+     * @return Reference to the modified `Style`
+     */
     inline constexpr Style& operator|=(Style& a, Style b)
     {
         a = a | b;
         return a;
     }
 
+
+    /**
+     * @brief check if specific style flag is set in a `Style` bitmask
+     * 
+     * tests whether any bit in 'check' is present in 'styles'
+     * useful for conditionally applying logic based on styles
+     * 
+     * @param styles the combined `Style` bitmask to check
+     * @param check the specific `style` flag to look for
+     * @return `true` **if any bit** in 'check' is set in 'styles'
+     * 
+     * @note should be called with a single style flag
+     * 
+     * @code
+     * Style my_style = Style::Bold | Style::Underline;
+     * if(has_style(my_style, Style::Bold))                 // true  (Bold is set)
+     * if(has_style(my_style, Style::Italic))               // false (Italic not set)
+     * if(has_style(my_style, Style::Bold | Style::Italic)) // true  (even though Italic is not set, Bold is)
+     * @endcode
+     */
     inline constexpr bool has_style(Style styles, Style check)
     {
         return (static_cast<style_ut>(styles) & static_cast<style_ut>(check)) != 0;
     }
+
 
     // Grant friendship to Aligned in the output namespace
     // to break circular dependency 
