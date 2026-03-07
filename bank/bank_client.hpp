@@ -116,7 +116,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 cd[2],                                                               // email
                 cd[3],                                                               // phone
                 cd[4],                                                               // account_number
-                utils::decrypt_text(cd[5], terminal_utils::config::ENCRYPTION_KEY), // pin (decrypted)
+                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT), // pin (decrypted)
                 std::stod(cd[6])                                                     // balance
             );
         }
@@ -128,7 +128,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                  + m_email                                                                 + std::string(SEPARATOR)
                  + m_phone_num                                                             + std::string(SEPARATOR)
                  + m_account_number                                                        + std::string(SEPARATOR)
-                 + utils::encrypt_text(m_pin_code, terminal_utils::config::ENCRYPTION_KEY) + std::string(SEPARATOR)
+                 + utils::encrypt_text(m_pin_code, terminal_utils::config::CIPHER_SHIFT) + std::string(SEPARATOR)
                  + std::to_string(m_account_balance);
         }
 

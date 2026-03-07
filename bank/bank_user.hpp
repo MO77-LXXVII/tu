@@ -171,7 +171,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                 ud[2],                                                                  // email
                 ud[3],                                                                  // phone
                 ud[4],                                                                  // username
-                utils::decrypt_text(ud[5], terminal_utils::config::ENCRYPTION_KEY),    // password (decrypted)
+                utils::decrypt_text(ud[5], terminal_utils::config::CIPHER_SHIFT),    // password (decrypted)
                 static_cast<uint32_t>(std::stoi(ud[6]))                                // permissions
             );
         }
