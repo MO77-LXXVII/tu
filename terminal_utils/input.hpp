@@ -216,6 +216,14 @@ namespace terminal_utils::input
     }
 
 
+    /**
+     * @brief reads a **whitespace-delimited word** from `stdin`, retrying until a valid value is read
+     *
+     * @param prompt     optional prompt to display before each read
+     * @param error_msg  message to display on invalid input
+     *
+     * @return the first successfully parsed word
+     */
     inline std::string get_string(std::string_view prompt = "", std::string_view error_msg = "")
     {
         while (true)
