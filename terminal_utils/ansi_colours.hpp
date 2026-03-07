@@ -298,6 +298,19 @@ namespace terminal_utils
             }
     };
 
+    /**
+     * @brief stream insertion operator for `ColouredText`
+     * 
+     * writes the text to `os` with ANSI colour and style codes applied,
+     * but only if `os` is `std::cout` or `std::cerr` and **ANSI is enabled**
+     * 
+     * @note always resets formatting after writing to avoid bleeding into subsequent output
+     * 
+     * @param os the output stream to write to
+     * @param ct the `ColouredText` object to render
+     * 
+     * @return reference to `os` for chaining
+     */
     inline std::ostream& operator<<(std::ostream& os, const ColouredText& ct)
     {
         // Only colorize cout and cerr
