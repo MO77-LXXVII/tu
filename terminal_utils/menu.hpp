@@ -153,7 +153,7 @@ namespace terminal_utils
              * useful for persistent info like *username* or *role*.
              *
              * @param text the subtitle text to add
-             * @return reference to this `Menu` for chai    ning
+             * @return reference to this `Menu` for chaining
              */
             Menu& add_global_subtitle(std::string text)
             {
@@ -268,6 +268,32 @@ namespace terminal_utils
             void display() const;
 
 
+            /* 
+                ======================
+                Diagnostic functions
+                ======================
+            */
+
+
+            /**
+             * @brief returns the number of items that are currently selectable
+             * 
+             * @note DIAGNOSTIC FUNCTION: useful for debugging menu state and validation.
+             * 
+             * Example debug usage:
+             * 
+             * @code
+             * Menu m = Menu::create("Test Menu")
+             *          .add_separator();
+             *
+             * if(m.get_selectable_count() == 0)
+             *     std::cout << "Menu has no selectable items\n";
+             * @endcode
+             * 
+             * @return number of selectable items in the menu
+             */
+            [[nodiscard]] int get_selectable_count() const;
+
         private:
             /* 
                 ======================
@@ -294,10 +320,6 @@ namespace terminal_utils
                 UI navigation functions
                 =======================
             */
-
-
-            /** @brief returns the number of items that are currently selectable */
-            [[nodiscard]] int _get_selectable_count() const;
 
 
             /**
@@ -563,22 +585,29 @@ namespace terminal_utils
         render_items();
         render_footer();
     }
-    
+
 
     /* 
-        ======================================
-        UI navigation functions implementation
-        ======================================
+        ======================
+         Diagnostic functions
+        ======================
     */
 
 
-    inline int Menu::_get_selectable_count() const
+    inline int Menu::get_selectable_count() const
     {
         return std::count_if(_items.begin(), _items.end(),[](const MenuItem& item)
         {
             return item.is_selectable();
         });
     }
+
+
+    /* 
+        ======================================
+        UI navigation functions implementation
+        ======================================
+    */
 
 
     inline int Menu::_next_selectable(int current) const
