@@ -477,8 +477,6 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             auto from_matches = CurrencyExchange::find_all(get_valid_currency_code());
 
-            // std::vector<CurrencyExchange> currency = *from_matches;
-
             terminal_utils::platform::clear_terminal();
             CurrencyExchange selected = select_from_matches(*from_matches);
 
@@ -527,12 +525,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             // `get_valid_currency_code()` guarantees existence
             auto from_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert from: "));
-
-            std::vector<CurrencyExchange> currency_from = *from_matches;
-
             auto to_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert to: "));
-
-            std::vector<CurrencyExchange> currency_to = *to_matches;
 
             terminal_utils::platform::clear_terminal();
             CurrencyExchange source = select_from_matches(*from_matches);
