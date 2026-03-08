@@ -36,42 +36,52 @@ namespace terminal_utils
     };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    /**
-     * @brief A terminal menu system with selectable items and separators.
-     * 
-     * This class allows building, displaying, and interacting with a simple
-     * text-based menu in the terminal. Items can be added with actions, and
-     * separators can be included for visual grouping. Supports highlighting
-     * the selected item with configurable colour.
+     /**
+     * @brief a terminal menu with keyboard navigation, selectable items, and visual separators
+     *
+     * supports building menus via a fluent interface, with configurable width, highlight colour,
+     * title, subtitles, and an optional date display.
+     * items can have dynamic visibility callbacks to show or hide them based on runtime conditions.
+     *
+     * navigation uses W/S (or J/K) to move, E/Enter to select, and Q to quit.
+     *
+     * @note `_global_subtitles` and `_date` are shared across all `Menu` instances via `inline static`
+     *
+     * @code
+     * Menu::create("Main Menu")
+     *     .set_width(40)
+     *     .add_item("Option A", []{ do_a(); })
+     *     .add_separator()
+     *     .add_item("Option B", []{ do_b(); })
+     *     .run();
+     * @endcode
      */
     class Menu
     {
         public:
             /**
-             * @brief Construct a menu with a given title.
-             * @param title The text title displayed at the top of the menu.
+             * @brief constructs a `Menu` with the given title
+             * @param title text displayed at the top of the menu
+             * @note prefer using the `Menu::create()` factory for a more expressive fluent interface
              */
             explicit Menu(std::string title) 
                 : _title(std::move(title)), _selected_index(-1) {}
 
+
             /**
-             * @brief Create a menu via a static factory.
-             * @param title The text title displayed at the top of the menu.
-             * @return A new Menu instance with the specified title.
+             * @brief factory function to create a `Menu` with the given title
+             *
+             * preferred over the constructor for a more expressive fluent interface:
+             * 
+             * @code
+             * Menu::create("Main Menu")
+             *     .set_width(40)
+             *     .add_item("Option A", []{ do_a(); })
+             *     .run();
+             * @endcode
+             *
+             * @param title text displayed at the top of the menu
+             * @return a new `Menu` instance
              */
             [[nodiscard]] static Menu create(std::string title)
             {
@@ -84,17 +94,27 @@ namespace terminal_utils
                 ==============
             */
 
+
             /**
-             * @brief Set the width of the menu (total characters per line).
-             * @param width The desired width of the menu.
-             * @return Reference to this menu (allows chaining).
+             * @brief sets the total character width of the menu
+             * @param width desired width in characters (default: `config::DEFAULT_MENU_WIDTH`)
+             * @return reference to this `Menu` for chaining
              */
             Menu& set_width(int width) 
-            { 
+            {
                 _width = width; 
                 return *this; 
             }
 
+
+            /**
+             * @brief enables the date display in the menu title area
+             *
+             * sets `_date` to today's date and enables rendering it below the title.
+             * shared across all `Menu` instances via `inline static`
+             *
+             * @return reference to this `Menu` for chaining
+             */
             Menu& set_date() 
             { 
                 _date = utils::Date::today();
@@ -102,16 +122,22 @@ namespace terminal_utils
                 return *this; 
             }
 
+
+            /**
+             * @brief disables the date display in the menu title area
+             * @return reference to this `Menu` for chaining
+             */
             Menu& reset_date() 
             {
                 _view_date = false;
                 return *this; 
             }
 
+
             /**
-             * @brief Set the colour used to highlight the selected item.
-             * @param colour The highlight colour.
-             * @return Reference to this menu (allows chaining).
+             * @brief sets the colour used to highlight the currently selected item
+             * @param colour the highlight colour (default: `Colour::Cyan`)
+             * @return reference to this `Menu` for chaining
              */
             Menu& set_highlight_colour(Colour colour)
             {
@@ -119,6 +145,16 @@ namespace terminal_utils
                 return *this;
             }
 
+
+            /**
+             * @brief adds a subtitle displayed below the title, shared across all `Menu` instances
+             *
+             * silently ignores duplicates: if the same text already exists it will not be added again.
+             * useful for persistent info like *username* or *role*.
+             *
+             * @param text the subtitle text to add
+             * @return reference to this `Menu` for chaining
+             */
             Menu& add_global_subtitle(std::string text)
             {
                 for(const auto& s: _global_subtitles)
@@ -129,17 +165,30 @@ namespace terminal_utils
                 return *this;
             }
 
+
+            /**
+             * @brief adds a subtitle displayed below the title, local to this `Menu` instance only
+             * @param text the subtitle text to add
+             * @return reference to this `Menu` for chaining
+             */
             Menu& add_subtitle(std::string text)
             {
                 _local_subtitles.emplace_back(std::move(text));
                 return *this;
             }
 
+
+            /**
+             * @brief clears all global subtitles shared across `Menu` instances
+             * @return reference to this `Menu` for chaining
+             */
             Menu& reset_global_subtitles()
             {
                 _global_subtitles.clear();
                 return *this;
             }
+
+
 
             /* 
                 ===============
