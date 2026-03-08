@@ -53,92 +53,101 @@ namespace terminal_utils
     }
 
 
-
-
-
-
-
     /**
-     * @brief Represents a single `Menu` entry.
-     * 
-     * Can be a *selectable item* with an associated action, or a *visual separator*.
+     * @brief represents a single entry in a `Menu`
+     *
+     * a `MenuItem` is either a **selectable item** with an associated action,
+     * or a **visual separator** that cannot be selected or executed.
+     *
+     * visibility can be controlled dynamically via an optional callback,
+     * allowing items to be shown or hidden based on runtime conditions.
+     *
+     * @note **separators** are skipped during navigation and cannot be executed
      */
     class MenuItem
     {
         public:
             /**
-             * @brief Construct a new MenuItem.
-             * 
-             * @param label Text displayed in the menu.
-             * @param action Callable function to execute when selected. (Ignored if this is a separator).
-             * @param is_separator If true, this item is a *visual separator* and cannot be selected.
+             * @brief constructs a new `MenuItem`
+             *
+             * @param label        text displayed in the menu
+             * @param action       callable to execute when the item is selected (ignored if `is_separator` is `true` or if the item is not visible)
+             * @param is_separator if `true`, this item acts as a visual separator and cannot be selected or executed (default: `false`)
+             * @param visibility   optional callback that controls dynamic visibility; if `nullptr`, item is always visible (default: `nullptr`)
              */
             MenuItem(std::string label, std::function<void()> action, bool is_separator = false, std::function<bool()> visibility = nullptr)
-                : _label(std::move(label)), _action(std::move(action)), _is_separator(is_separator), _visibility(std::move(visibility))
+                : m_label(std::move(label)), m_action(std::move(action)), m_is_separator(is_separator), m_visibility(std::move(visibility))
                 {}
 
-            /**
-             * @brief Get the label of the menu item.
-             * 
-             * @return `const std::string&` The text label.
-             */
+
+            /** @brief returns the text label of this `MenuItem` */
             [[nodiscard]] const std::string& label() const noexcept
             {
-                return _label;
+                return m_label;
             }
 
+
             /**
-             * @brief Check if the item is a separator.
-             * 
-             * @return `true` If the item is a separator.
-             * @return `false` Otherwise.
+             * @brief checks whether this item is a visual separator
+             * @return `true` if the item is a separator, `false` otherwise
              */
             [[nodiscard]] bool is_separator() const noexcept
             {
-                return _is_separator;
+                return m_is_separator;
             }
 
-            [[nodiscard]] bool is_visible() const noexcept
-            {
-                if(!_visibility)
-                    return true;
-
-                return _visibility();
-            }
 
             /**
-             * @brief Check if the item can be selected.
-             * 
-            * @return `true`
-            *         If the item is selectable (not a separator and has an action).
-            * @return `false`
-            *         Otherwise.
+             * @brief checks whether this item is currently visible
+             *
+             * if no visibility callback is set, the item is always visible
+             * otherwise, delegates to the callback to determine visibility dynamically
+             *
+             * @return `true` if the item should be shown, `false` otherwise
+             */
+            [[nodiscard]] bool is_visible() const noexcept
+            {
+                if(!m_visibility)
+                    return true;
 
+                return m_visibility();
+            }
+
+
+            /**
+             * @brief checks whether this item can be selected and executed
+             *
+             * an item is selectable if it is not a separator, has an associated action, and is currently visible
+             *
+             * @return `true` if the item is selectable, `false` otherwise
              */
             [[nodiscard]] bool is_selectable() const noexcept
             {
-                return !_is_separator && _action && is_visible();
+                return !m_is_separator && m_action && is_visible();
             }
 
+
             /**
-             * @brief Execute the item's associated action.
-             * 
-             * Safe to call even if the item is not selectable; nothing happens in that case.
+             * @brief executes the item's associated action
+             *
+             * restores cursor visibility before invoking the action, since the menu hides it during navigation
+             *
+             * @note safe to call on a separator or invisible item; nothing happens if no action is set
              */
             void execute() const 
             { 
-                if(_action)
+                if(m_action)
                 {
                     show_cursor();
-                    _action(); 
+                    m_action(); 
                 }
             }
 
         private:
-            std::string _label;               /**< Text label of the menu item */
-            std::function<void()> _action;    /**< Action to execute when selected */
-            bool _is_separator = false;       /**< `true` if item is a separator */
-            std::function<bool()> _visibility = nullptr;
+            std::string m_label;                          /**< text label of the menu item */
+            bool m_is_separator = false;                  /**< `true` if item is a separator */
+            std::function<void()> m_action = nullptr;     /**< action to execute when selected */
+            std::function<bool()> m_visibility = nullptr; /**< optional callback to determine dynamic visibility */
     };
 
 
