@@ -240,7 +240,6 @@ namespace terminal_utils
             }
 
 
-
             /* 
                 ==========================
                 Run the menu interactively
@@ -249,22 +248,26 @@ namespace terminal_utils
 
 
             /**
-             * @brief Run the menu interactively.
-             * Allows the user to navigate, select items, or cancel.
-             * @return The result of the menu interaction (Selected, Quit, or Error).
+             * @brief runs the menu interactively until the user selects an item or quits
+             *
+             * handles keyboard navigation (W/S or J/K to move, E/Enter to select, Q to quit),
+             * re-renders on each keypress, and executes the selected item's action before returning.
+             *
+             * @return `MenuResult::Selected` if an item was executed,
+             *         `MenuResult::Quit`     if the user pressed 'q',
+             *         `MenuResult::Error`    if not running in a terminal or no selectable items exist
              */
             [[nodiscard]] MenuResult run();
 
+
             /**
-             * @brief Display the menu without interaction.
-             * Useful for rendering the menu for preview purposes.
+             * @brief renders the menu to `std::cout` without any interaction
+             *
+             * useful for previewing or debugging the menu layout
              */
             void display() const;
 
-            /**
-             * @brief Run the menu once and return the selected item index.
-             * @return Optional index of the selected item, or std::nullopt if Quit or error.
-             */
+
             [[nodiscard]] std::optional<std::size_t> run_once();
 
 
