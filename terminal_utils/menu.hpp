@@ -270,7 +270,7 @@ namespace terminal_utils
 
             /* 
                 ======================
-                Diagnostic functions
+                Diagnostic methods
                 ======================
             */
 
@@ -297,7 +297,7 @@ namespace terminal_utils
         private:
             /* 
                 ======================
-                UI rendering functions
+                UI rendering methods
                 ======================
             */
 
@@ -317,7 +317,7 @@ namespace terminal_utils
 
             /* 
                 =======================
-                UI navigation functions
+                UI navigation methods
                 =======================
             */
 
@@ -416,7 +416,7 @@ namespace terminal_utils
 
     /* 
         ======================================
-                UI rendering functions
+                UI rendering methods
         ======================================
     */
 
@@ -589,7 +589,7 @@ namespace terminal_utils
 
     /* 
         ======================
-         Diagnostic functions
+         Diagnostic methods
         ======================
     */
 
@@ -605,7 +605,7 @@ namespace terminal_utils
 
     /* 
         ======================================
-        UI navigation functions implementation
+        UI navigation methods implementation
         ======================================
     */
 
