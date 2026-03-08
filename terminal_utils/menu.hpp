@@ -19,7 +19,7 @@ namespace terminal_utils
     /**
      * @brief Represents the result of a menu interaction.
      * 
-     * Indicates whether the user selected an item, cancelled the menu,
+     * Indicates whether the user selected an item, Quit the menu,
      * or if an error occurred during input.
      */
     enum class MenuResult
@@ -27,8 +27,8 @@ namespace terminal_utils
         /** User **selected** a menu item. */
         Selected,
 
-        /** User **cancelled** the menu (e.g., pressed 'q'). */
-        Cancelled,
+        /** User **Quit** the menu (e.g., pressed 'q'). */
+        Quit,
 
         /** An **input error** occurred. */
         Error
@@ -288,7 +288,7 @@ namespace terminal_utils
             /**
              * @brief Run the menu interactively.
              * Allows the user to navigate, select items, or cancel.
-             * @return The result of the menu interaction (Selected, Cancelled, or Error).
+             * @return The result of the menu interaction (Selected, Quit, or Error).
              */
             [[nodiscard]] MenuResult run();
 
@@ -300,7 +300,7 @@ namespace terminal_utils
 
             /**
              * @brief Run the menu once and return the selected item index.
-             * @return Optional index of the selected item, or std::nullopt if cancelled or error.
+             * @return Optional index of the selected item, or std::nullopt if Quit or error.
              */
             [[nodiscard]] std::optional<std::size_t> run_once();
 
@@ -700,13 +700,13 @@ else
                 case 'q':
                     _is_running = false;
                     show_cursor();
-                    return MenuResult::Cancelled;
+                    return MenuResult::Quit;
 
                 default:
                     break;
             }
         }
-        return MenuResult::Cancelled;
+        return MenuResult::Quit;
     }
 
 
