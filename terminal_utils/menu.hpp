@@ -313,21 +313,43 @@ namespace terminal_utils
              */
             [[nodiscard]] int _prev_selectable(int current) const;
 
-            std::string _title;                        /**< Text title displayed at the top of the menu */
-            inline static std::vector<std::string> _subtitles;       /**< Text title displayed below `_title` */
 
-            inline static std::vector<std::string> _global_subtitles;   // persists across all menus (username, role)
-            std::vector<std::string> _local_subtitles;                  // per-menu instance only
 
-            std::vector<MenuItem> _items;              /**< List of menu items and separators */
-            int _selected_index = -1;                  /**< Index of the currently selected item */
-            int _width = config::DEFAULT_MENU_WIDTH;   /**< Width of the menu in characters */
-            Colour _highlight_colour = Colour::Cyan;   /**< Colour used to highlight selected item */
-            bool _is_running = false;                  /**< Whether the menu is currently running */
+            /* 
+                =======================
+                Data Organization
+                =======================
+                
+                - SHARED (inline static - same for all menus):
+                    _global_subtitles  - Persistent info (username, role, system status)
+                    _date              - Current date/time
+                    _show_date         - Whether to show date in all menus
 
-            // shared among all instances to avoid calling `set_date()` per instance
-            inline static utils::Date _date{};
-            inline static bool _view_date = false;
+                - PER MENU (instance members):
+                    _title             - This menu's title (e.g., "Main Menu", "Settings")
+                    _local_subtitles   - This menu's dynamic info (e.g., "Page 2/5")
+                    _items             - Menu options
+                    _selected_index    - Current selection
+                    _width             - Menu width
+                    _highlight_colour  - Selection highlight color
+                    _is_running        - Menu state
+                =======================
+            */
+
+
+            // Shared across all instances
+            inline static std::vector<std::string> _global_subtitles;   ///< persistent info shown in all menus (e.g. username, role)
+            inline static utils::Date _date{};                          ///< current date displayed in the title area
+            inline static bool _view_date = false;                      ///< whether to show the date in all menus
+
+            // Per-menu instance
+            std::string _title;                                         ///< text title displayed at the top of the menu
+            std::vector<std::string> _local_subtitles;                  ///< dynamic info local to this menu instance (e.g. "Page 2/5")
+            std::vector<MenuItem> _items;                               ///< list of menu items and separators
+            int _selected_index = -1;                                   ///< index of the currently selected item
+            int _width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
+            Colour _highlight_colour = Colour::Cyan;                    ///< colour used to highlight the selected item
+            bool _is_running = false;                                   ///< whether the menu loop is currently active
     };
 
     namespace
