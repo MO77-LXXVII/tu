@@ -1,34 +1,40 @@
-// crtp_bank.hpp
+// persistent_entity.hpp
 
 /*
     ===========================================================
-    CRTP — Curiously Recurring Template Pattern
-    Educational Example: PersistentEntity<Derived>
+        Curiously Recurring Template Pattern (CRTP)
+            PersistentEntity<Derived>
     ===========================================================
 
-    PROBLEM:
-    BankClient, BankUser and CurrencyExchange share identical code:
-      - File reading/writing
-      - Line parsing / encoding
-      - save() with Mode switch
+    ?MOTIVATION:
+    BankClient, BankUser, and CurrencyExchange share identical logic:
+      - File I/O (reading and writing)
+      - Line parsing and encoding
+      - save() with mode switching
       - load_all(), find(), exists(), remove()
 
-    SOLUTION:
-    Extract all of that into a base class template.
-    Each derived class only implements the parts that differ:
-      - encode()        → how to serialize THIS object to a line
-      - decode()        → how to parse a line into THIS object
-      - file_name()     → which file to use
-      - key()           → unique identifier (e.g. account number)
-      - matches_key()   → how to compare keys
+    An alternative approach using a virtual Interface would incur runtime
+    overhead; CRTP avoids this entirely by resolving all dispatch at compile time.
 
-    The base handles everything else automatically.
+    ?DESIGN:
+    PersistentEntity<Derived> extracts all shared logic into a single
+    base class template.
+    
+    each derived class implements only the parts
+    specific to its type:
+      - encode()       -> serialize this object to a line
+      - decode()       -> parses a line into this object
+      - file_name()    -> which file to read/write
+      - key()          -> unique identifier (e.g. account number)
+      - matches_key()  -> how to compare keys
 
-    HOW CRTP WORKS:
-    template<typename Derived>        ← Derived = BankClient / BankUser / CurrencyRate
+    the base handles everything else automatically.
+
+    ?CRTP MECHANICS:
+    template<typename Derived>
     class PersistentEntity
     {
-        // Base can call Derived methods via static_cast
+        // Base accesses derived members without virtual dispatch
         Derived& self() { return static_cast<Derived&>(*this); }
     };
 
@@ -36,7 +42,8 @@
     class BankUser     : public PersistentEntity<BankUser>     {};
     class CurrencyRate : public PersistentEntity<CurrencyRate> {};
 
-    No virtual functions. No runtime overhead. Resolved at compile time.
+    All dispatch is resolved at compile time
+    no virtual functions, no runtime overhead.
 */
 
 #pragma once
