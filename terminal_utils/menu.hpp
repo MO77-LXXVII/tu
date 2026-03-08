@@ -546,15 +546,11 @@ namespace terminal_utils
     }
     
 
-
-
-
-
-
-
-
-
-
+    /**
+     * @brief clears the terminal and renders the full menu interface
+     *
+     * renders in order: title → items → footer
+     */
     inline void Menu::render() const
     {
         platform::clear_terminal();
