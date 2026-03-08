@@ -359,18 +359,34 @@ namespace terminal_utils
             bool _is_running = false;                                   ///< whether the menu loop is currently active
     };
 
+
     namespace
     {
-        constexpr int MENU_BORDER_WIDTH = 2;   // "|"
-        constexpr int MENU_SELECTOR_WIDTH = 2; // "> "
-        constexpr int MENU_PADDING = 2;  // empty space between txt & | ("| txt |")
-                                                //                                ^   ^
+        constexpr int MENU_BORDER_WIDTH = 2;   ///< width of the `|` border characters on each side
+        constexpr int MENU_SELECTOR_WIDTH = 2; ///< width of the `> ` selector prefix on selected items
+        constexpr int MENU_PADDING = 2;        ///< empty space between text and border (`| txt |`)
+                                               ///<                                           ^ ^
 
+
+        /**
+         * @brief renders a full-width horizontal border line
+         * @param width     total menu width in characters
+         * @param fill_char character to fill the border with (default: `'-'`, use `'='` for section separator)
+         */
         void render_horizontal_border(int width, char fill_char = '-')
         {
             std::cout << "+" << std::string(width - MENU_BORDER_WIDTH, fill_char) << "+\n"; // Top border
         }
 
+
+        /**
+         * @brief renders a dimmed inline separator inside a menu row
+         *
+         * shorter than the full border to account for the `| ` padding on each side
+         *
+         * @param width     total menu width in characters
+         * @param fill_char character to fill the separator with (default: `'-'`)
+         */
         void render_separator(int width, char fill_char = '-')
         {
             std::cout << dim(std::string(width - (MENU_BORDER_WIDTH + MENU_PADDING), fill_char));
