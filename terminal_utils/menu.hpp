@@ -276,23 +276,25 @@ namespace terminal_utils
             */
 
 
-            /** @brief Render the full menu interface. */
+            /** @brief clears the terminal and renders title, items, and footer in order */
             void render() const;
 
-            /** @brief Render only the menu title at the top. */
+            /** @brief renders the title, global/local subtitles, and optional date, wrapped in borders */
             void render_title() const;
 
-            /** @brief Render all menu items with highlighting. */
+            /** @brief renders all menu items, highlighting the selected one and dimming invisible items */
             void render_items() const;
 
-            /** @brief Render the menu footer with instructions. */
+            /** @brief renders the bottom border and navigation key hints */
             void render_footer() const;
+
 
             /* 
                 =======================
                 UI navigation functions
                 =======================
             */
+
 
             /** @brief Count how many items are selectable. */
             [[nodiscard]] int _get_selectable_count() const;
