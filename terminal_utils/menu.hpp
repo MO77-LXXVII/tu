@@ -394,19 +394,27 @@ namespace terminal_utils
     }
 
 
-
-
-
-
-
-
+    /**
+     * @brief renders the menu title area including subtitles and optional date
+     *
+     * output structure:
+     * 
+     * @code
+     * +--------------------------------------+   <- top border
+     * |            Bank System               |   <- title (bold, underlined)
+     * |        Logged in as: admn            |   <- global subtitles (bold, green, underlined)
+     * |           Date: 08/03/2026           |   <- date (if enabled) (bold, underlined)
+     * +======================================+   <- section separator
+     * @endcode
+     */
     inline void Menu::render_title() const
     {
         using namespace terminal_utils;
 
         render_horizontal_border(_width); // Top border
 
-        constexpr int border_padding = 2; // account for '|' we manually print on each side
+        // subtract border_padding to account for the '|' characters we manually print on each side
+        constexpr int border_padding = 2;
         
         std::cout << "|" << output::print_aligned(bold(underline(_title)), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
@@ -421,130 +429,113 @@ namespace terminal_utils
 
         render_horizontal_border(_width, '='); // Separator
     }
-    
 
 
-
-
-
-
-
-
-
-
+    /**
+     * @brief renders all menu items with selection highlighting and visibility dimming
+     *
+     * each item is rendered as one of:
+     *
+     * @code
+     * | ------------------------------------ |   <- separator
+     * | > Accounts                           |   <- selected item (highlighted)
+     * |   Transactions                       |   <- normal item
+     * |   Restricted Option                  |   <- invisible item (dimmed)
+     * @endcode
+     *
+     * @note *labels longer* than the available width are **truncated** with `...`
+     * @note *invisible items* are rendered *dimmed* and cannot be navigated to
+     * 
+     * @code
+     * | > Accounts$$$$$$$$$$$$$$$$$$$$$$$... |
+     *                                    ^^^
+     *                                Truncated
+     * @endcode
+     */
     inline void Menu::render_items() const
     {
+        // iterate through all menu items (including separators)
         for(std::size_t i = 0; i < _items.size(); ++i)
         {
             const auto& item = _items[i];
             bool is_selected = (static_cast<int>(i) == _selected_index);
 
+            // left border: every row starts with "| "
             std::cout << "| ";
 
+            // --- SEPARATOR HANDLING ---
             if(item.is_separator())
-                render_separator(_width);
+                render_separator(_width); // render a horizontal line across the menu width
 
-            // else
-            // {
-            //     std::string label = item.label();
-
-            //     int max_label_width = _width - (MENU_BORDER_WIDTH + MENU_SELECTOR_WIDTH + MENU_PADDING);
-
-            //     /*
-            //         Truncate if too long
-            //         Example:
-            //         | > Accounts$$$$$$$$$$$$$$$$$$$$$$$... |
-            //                                            ^^^
-            //                                            Truncated                
-            //     */
-            //     if(static_cast<int>(label.length()) > max_label_width)
-            //         label = label.substr(0, max_label_width - 3) + "...";
-
-            //     if(int padding = max_label_width - static_cast<int>(label.length()); is_selected)
-            //     {
-            //         // if selected
-            //         // | > Accounts                           |
-            //         std::cout << ColouredText(("> " + label), _highlight_colour);
-
-            //         // Pad to align right border
-            //         std::cout << std::string(std::max(0, padding), ' ');
-            //     }
-
-            //     else
-            //     {
-            //         // if not selected
-            //         // |   Transactions                       |
-            //         std::cout << "  " << label;
-            //         std::cout << std::string(std::max(0, padding), ' ');
-            //     }
-            // }
-
+            // --- MENU ITEM HANDLING (not a separator) ---
             else
             {
                 std::string label = item.label();
 
+                /*
+                    calculate available space for the label:
+                    _width                  : total menu width
+                    MENU_BORDER_WIDTH       : accounts for left and right "|" and "|" (2 characters)
+                    MENU_SELECTOR_WIDTH     : space for "> " or "  " (2 characters)
+                    MENU_PADDING            : extra padding spaces (2 characters)
+
+                    example: if _width = 40, border = 2, selector = 2, padding = 2
+                    max_label_width = 40 - (2 + 2 + 2) = 34 characters for the label
+                */
                 int max_label_width = _width - (MENU_BORDER_WIDTH + MENU_SELECTOR_WIDTH + MENU_PADDING);
 
                 if(static_cast<int>(label.length()) > max_label_width)
-                    label = label.substr(0, max_label_width - 3) + "...";
+                    label = label.substr(0, max_label_width - 3) + "..."; // truncate and add ellipsis: "Very Long Menu Option..." 
 
+                /*
+                    calculate right padding to maintain consistent menu width
+                    if `label` is shorter than `max_label_width`, add spaces on the right
+                    Example: "  Accounts    " (with extra spaces to fill to `max_label_width`)
+                 */
                 int padding = max_label_width - static_cast<int>(label.length());
 
+                // --- VISIBILITY STATES (3 possible render modes) ---
+
+                // 1. INVISIBLE ITEM: dimmed, cursor cannot select
                 if(!item.is_visible())
                 {
-                    // restricted — always dim, cursor never lands here
+                    // Render with tu:: dim()
+                    // Uses "  " (no selector) + dimmed label
                     std::cout << dim("  " + label);
                     std::cout << std::string(std::max(0, padding), ' ');
                 }
+
+                // 2. SELECTED VISIBLE ITEM: highlighted with cursor
                 else if(is_selected)
                 {
+                    // Render with highlight colour (e.g., Cyan)
+                    // Uses "> " as selector + highlighted label
                     std::cout << ColouredText(("> " + label), _highlight_colour);
                     std::cout << std::string(std::max(0, padding), ' ');
                 }
+
+                // 3. NORMAL VISIBLE ITEM: plain, no highlight, no cursor
                 else
                 {
+                    // Uses "  " (no selector) + plain label
                     std::cout << "  " << label;
                     std::cout << std::string(std::max(0, padding), ' ');
                 }
             }
+            // Right border - every row ends with " |" and newline
             std::cout << " |\n";
         }
     }
 
 
-
-/*
-
-
-if(item.is_separator())
-{
-    buf << dim(std::string(_width - (MENU_BORDER_WIDTH + MENU_PADDING), '-'));
-}
-else if(!item.is_visible())
-{
-    buf << dim("  " + label);
-    buf << std::string(std::max(0, padding), ' ');
-}
-else if(is_selected)
-{
-    buf << ColouredText(("> " + label), _highlight_colour);
-    buf << std::string(std::max(0, padding), ' ');
-}
-else
-{
-    buf << "  " << label;
-    buf << std::string(std::max(0, padding), ' ');
-}
-
-
-*/
-
-
-
-
-
-
-
+    /**
+     * @brief renders the bottom border and navigation key hints
+     *
+     * @code
+     * +--------------------------------------+
+     * W: Up  S: Down  E: Select  q: Quit
+     * @endcode
+     */
     inline void Menu::render_footer() const
     {
         // Bottom border
