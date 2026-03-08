@@ -186,14 +186,17 @@ class PersistentEntity
 
 
     protected:
-        Mode _mode = Mode::empty_mode;
+        Mode _mode = Mode::empty_mode; ///< current persistence mode, determines behaviour of `save()`
 
-        // Protected constructor so derived classes set the mode
-        explicit PersistentEntity(Mode mode = Mode::empty_mode) : _mode(mode) {}
+
+        /**
+         * @brief protected constructor derived classes set the initial mode
+         * @param mode initial `Mode`, defaults to `empty_mode`
+         */
+        explicit PersistentEntity(Mode mode = Mode::empty_mode): _mode(mode) {}
 
 
     private:
-
         // ----------------------------------------------------------
         // Internal helpers — call Derived's encode/decode/sort
         // ----------------------------------------------------------
