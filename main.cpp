@@ -11,9 +11,10 @@
 #include "terminal_utils/style_wrappers.hpp"
 #include "terminal_utils/input.hpp"
 #include "terminal_utils/output.hpp"
-#include "terminal_utils/menu.hpp"
-#include "terminal_utils/menu_navigator.hpp"
 #include "terminal_utils/logger.hpp"
+
+#include "terminal_utils/menu/menu.hpp"
+#include "terminal_utils/menu/menu_navigator.hpp"
 
 #include "bank/bank_client.hpp"
 #include "bank/bank_user.hpp"

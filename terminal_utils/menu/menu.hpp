@@ -9,11 +9,12 @@
 #include <string_view>
 
 #include "menu_item.hpp"
-#include "input.hpp"
-#include "ansi_colours.hpp"
-#include "style_wrappers.hpp"
-#include "../platform/platform.hpp"
-#include "../utils/date.hpp"
+#include "../input.hpp"
+#include "../ansi_colours.hpp"
+#include "../style_wrappers.hpp"
+
+#include "../../platform/platform.hpp"
+#include "../../utils/date.hpp"
 
 namespace terminal_utils
 {
