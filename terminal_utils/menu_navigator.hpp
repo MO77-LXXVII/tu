@@ -103,7 +103,7 @@ namespace terminal_utils
                 auto result = menu.run();
 
                 // 'q' on any menu = go back one level
-                if(result == MenuResult::Cancelled)
+                if(result == MenuResult::Quit)
                     pop();
             }
         }
