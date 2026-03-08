@@ -88,12 +88,12 @@ namespace terminal_utils
                 return Menu(std::move(title));
             }
 
+
             /* 
                 ==============
                 Configurations
                 ==============
             */
-
 
             /**
              * @brief sets the total character width of the menu
@@ -188,18 +188,18 @@ namespace terminal_utils
             }
 
 
-
             /* 
                 ===============
                 Adding elements
                 ===============
             */
 
+
             /**
-             * @brief Add a selectable item to the menu.
-             * @param label The text label of the menu item.
-             * @param action The function to execute when the item is selected.
-             * @return Reference to this menu (allows chaining).
+             * @brief adds a selectable item to the menu
+             * @param label  text displayed in the menu
+             * @param action callable to execute when the item is selected
+             * @return reference to this `Menu` for chaining
              */
             Menu& add_item(std::string label, std::function<void()> action)
             {
@@ -208,15 +208,30 @@ namespace terminal_utils
             }
 
 
+            /**
+             * @brief adds a selectable item with a dynamic visibility callback
+             *
+             * the item is only shown and selectable when the visibility callback returns `true`
+             *
+             * @param label      text displayed in the menu
+             * @param action     callable to execute when the item is selected
+             * @param visibility callback that controls whether the item is visible at runtime
+             * @return reference to this `Menu` for chaining
+             */
             Menu& add_item(std::string label, std::function<void()> action, std::function<bool()> visibility)
             {
-                _items.emplace_back(std::move(label), std::move(action), false, std::move(visibility));
+                _items.emplace_back(std::move(label), std::move(action),
+                                    false /* not a separator, this is a selectable item */, std::move(visibility));
                 return *this;
             }
 
+
             /**
-             * @brief Add a visual separator to the menu.
-             * @return Reference to this menu (allows chaining).
+             * @brief adds a visual separator to the menu
+             *
+             * separators cannot be selected or executed and are skipped during navigation
+             *
+             * @return reference to this `Menu` for chaining
              */
             Menu& add_separator()
             {
