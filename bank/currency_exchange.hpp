@@ -22,13 +22,32 @@
 // Only implements the 5 required CRTP hooks + its own business logic
 // ============================================================
 
-class CurrencyExchange : public PersistentEntity<CurrencyExchange>
+
+/**
+ * @brief represents a currency exchange rate entry
+ * 
+ * inherits shared persistence from `PersistentEntity<CurrencyExchange>`
+ * 
+ * implements the required CRTP hooks: `encode()`, `decode()`, `file_name()`, `key()`, `matches_key()`, `sort()`
+ */
+class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 {
-    // ----------------------------------------------------------
-    // Types
-    // ----------------------------------------------------------
     public:
-        // Richer result type so callers know exactly what went wrong
+
+
+        // ignore IntelliSense scoping issue 
+        // it gets confused about the scope of nested enums inside CRTP templates
+        /**
+         * @brief return type for `save_with_result()` indicates success or the exact failure reason
+         * 
+         * - `succeeded`                      record was saved successfully
+         * 
+         * - `failed_empty_object`            attempted to save an empty record
+         * 
+         * - `failed_currency_exists`         currency code already exists (add mode only)
+         * 
+         * - `failed_cannot_update_currency`  underlying I/O failure
+        */
         enum class SaveResult
         {
             succeeded,
@@ -37,25 +56,38 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             failed_cannot_update_currency
         };
 
-    // ----------------------------------------------------------
-    // Data
-    // ----------------------------------------------------------
-    protected:
-        std::string m_country{};
-        std::string m_currency_code{};
-        std::string m_currency_name{};
-        double m_rate{};
 
-    // ----------------------------------------------------------
-    // Constructors
-    // ----------------------------------------------------------
+        // =========================
+        //         Data
+        // =========================
+
+    protected:
+        std::string m_country;         ///< country name
+        std::string m_currency_code;   ///< ISO currency code  (e.g. "EUR")
+        std::string m_currency_name;   ///< full currency name (e.g. "Euro")
+        double      m_rate{};          ///< exchange rate relative to USD
+
+
     public:
-        // Empty sentinel: returned when a lookup finds nothing
+
+        // =========================
+        //     Constructors
+        // =========================
+
+        /** @brief default constructor creates an empty sentinel object with `Mode::empty_mode` */
         CurrencyExchange()
             : PersistentEntity(Mode::empty_mode)
         {}
 
-        // Full constructor used everywhere (UI, decode, factory helpers)
+
+        /**
+         * @brief full constructor used by the UI, `decode()`, and factory helpers
+         * @param mode          persistence mode
+         * @param country       country name
+         * @param currency_code ISO currency code
+         * @param currency_name full currency name
+         * @param rate          exchange rate relative to USD
+         */
         CurrencyExchange(
                 Mode        mode,
                 std::string country,
@@ -69,10 +101,10 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
                 m_rate(rate)
         {}
 
-    // ----------------------------------------------------------
-    // Factory helpers
-    // ----------------------------------------------------------
-    public:
+        // =========================
+        //     Factory helpers
+        // =========================
+
         static CurrencyExchange make_empty()
         {
             return CurrencyExchange{};
@@ -85,10 +117,10 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             return CurrencyExchange(Mode::add_mode, "", std::move(currency_code), "", 0);
         }
 
-    // ----------------------------------------------------------
-    // Required CRTP hooks
-    // ----------------------------------------------------------
-    public:
+        // =========================
+        //    Required CRTP hooks
+        // =========================
+
         [[nodiscard]] static std::string_view file_name()
         {
             return terminal_utils::config::CURRENCY_EXCHANGE_FILE_NAME;
@@ -142,9 +174,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             });
         }
 
-    // ----------------------------------------------------------
-    // find() overload: by currency code
-    // ----------------------------------------------------------
+        // =========================
+        // find() overload: by currency code
+        // =========================
     public:
         [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
         {
@@ -168,9 +200,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             return currencies_with_same_code;
         }
 
-    // ----------------------------------------------------------
-    // Richer save(): wraps base save() and returns SaveResult
-    // ----------------------------------------------------------
+        // =========================
+        // Richer save(): wraps base save() and returns SaveResult
+        // =========================
     public:
         SaveResult save_with_result()
         {
@@ -188,9 +220,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
         }
 
 
-    // ----------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------
+        // =========================
+        // Helpers
+        // =========================
     public:
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
@@ -218,9 +250,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
 
 
 
-    // ----------------------------------------------------------
-    // UI — input
-    // ----------------------------------------------------------
+        // =========================
+        // UI — input
+        // =========================
     public:
         static std::string get_valid_currency_code(std::string_view msg = "Enter currency code: ")
         {
@@ -261,9 +293,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             currency.m_rate = terminal_utils::input::get_number<double>();
         }
 
-    // ----------------------------------------------------------
-    // UI — display
-    // ----------------------------------------------------------
+        // =========================
+        // UI — display
+        // =========================
     public:
         void print_currency_details(bool show_index = false, int index = 0) const
         {
@@ -321,9 +353,9 @@ class CurrencyExchange : public PersistentEntity<CurrencyExchange>
             print_currency_details(currencies);
         }
 
-    // ----------------------------------------------------------
-    // UI — CRUD actions
-    // ----------------------------------------------------------
+        // =========================
+        // UI — CRUD actions
+        // =========================
     public:
         static void add_currency()
         {
