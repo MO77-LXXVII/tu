@@ -533,7 +533,7 @@ namespace terminal_utils
      *
      * @code
      * +--------------------------------------+
-     * W: Up  S: Down  E: Select  q: Quit
+     * W/K: Up  S/J: Down  E: Select  q: Quit
      * @endcode
      */
     inline void Menu::render_footer() const
@@ -542,7 +542,7 @@ namespace terminal_utils
         render_horizontal_border(_width);
 
         // Help text
-        std::cout << dim("W: Up  S: Down  E: Select  q: Quit") << "\n";
+        std::cout << dim("W/K: Up  S/J: Down  E: Select  q: Quit") << "\n";
     }
     
 
