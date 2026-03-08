@@ -268,15 +268,13 @@ namespace terminal_utils
             void display() const;
 
 
-            [[nodiscard]] std::optional<std::size_t> run_once();
-
-
         private:
             /* 
                 ======================
                 UI rendering functions
                 ======================
             */
+
 
             /** @brief Render the full menu interface. */
             void render() const;
@@ -676,23 +674,9 @@ else
     }
 
 
-
-
-
-
-
     inline void Menu::display() const
     {
         render();
-    }
-
-    inline std::optional<std::size_t> Menu::run_once()
-    {
-        auto result = run();
-        if(result == MenuResult::Selected)
-            return static_cast<std::size_t>(_selected_index);
-
-        return std::nullopt;
     }
 
 } // namespace terminal_utils
