@@ -339,7 +339,6 @@ namespace terminal_utils
                     _selected_index    - Current selection
                     _width             - Menu width
                     _highlight_colour  - Selection highlight color
-                    _is_running        - Menu state
                 =======================
             */
 
@@ -356,7 +355,6 @@ namespace terminal_utils
             int _selected_index = -1;                                   ///< index of the currently selected item
             int _width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
             Colour _highlight_colour = Colour::Cyan;                    ///< colour used to highlight the selected item
-            bool _is_running = false;                                   ///< whether the menu loop is currently active
     };
 
 
@@ -375,7 +373,7 @@ namespace terminal_utils
          */
         void render_horizontal_border(int width, char fill_char = '-')
         {
-            std::cout << "+" << std::string(width - MENU_BORDER_WIDTH, fill_char) << "+\n"; // Top border
+            std::cout << "+" << std::string(width - MENU_BORDER_WIDTH, fill_char) << "+\n";
         }
 
 
@@ -581,15 +579,6 @@ namespace terminal_utils
             return item.is_selectable();
         });
     }
-    
-
-
-
-
-
-
-
-
 
 
     inline int Menu::_next_selectable(int current) const
@@ -605,15 +594,6 @@ namespace terminal_utils
 
         return current;
     }
-    
-
-
-
-
-
-
-
-
 
 
     inline int Menu::_prev_selectable(int current) const
@@ -631,38 +611,28 @@ namespace terminal_utils
     }
 
 
-
-
-
-
-
-
     inline MenuResult Menu::run()
     {
         if(!platform::is_terminal())
             return MenuResult::Error;
 
-        // Find first selectable item
-        // validate index per-instance state:
+        // initialize or reset `_selected_index` if it's unset, out of bounds, or pointing to a non-selectable item
         if(_selected_index == -1 || _selected_index >= static_cast<int>(_items.size()) || !_items[_selected_index].is_selectable())
             _selected_index = _next_selectable(-1);
 
         if(_selected_index < 0)
-            return MenuResult::Error; // No selectable items
+            return MenuResult::Error; // _next_selectable() returns -1 when no selectable items exist
 
-        _is_running = true;
-
-        while(_is_running)
+        while(true)
         {
             render();
-
             hide_cursor();
 
             auto key_opt = input::get_menu_key();
 
             if(!key_opt)
             {
-                // Clear any pending input
+                // clear any pending input before retrying
                 input::clear_failed_input();
                 continue;
             }
@@ -671,19 +641,19 @@ namespace terminal_utils
 
             switch(key)
             {
-                case 'j':
+                case 'j': // vim-style down
                     [[fallthrough]];
                 case 's':
                     _selected_index = _next_selectable(_selected_index);
                     break;
 
-                case 'k':
+                case 'k': // vim-style up
                     [[fallthrough]];
                 case 'w':
                     _selected_index = _prev_selectable(_selected_index);
                     break;
 
-                case '\n':
+                case '\n': // Enter key (various terminals)
                     [[fallthrough]];
                 case '\r':
                 case 'e':
@@ -692,6 +662,7 @@ namespace terminal_utils
                         const auto& item = _items[_selected_index];
                         if(item.is_selectable())
                         {
+                            // execute() calls show_cursor() internally before invoking the action
                             item.execute();
                             return MenuResult::Selected;
                         }
@@ -699,15 +670,14 @@ namespace terminal_utils
                     break;
 
                 case 'q':
-                    _is_running = false;
-                    show_cursor();
+                    show_cursor(); // restore cursor before exiting
                     return MenuResult::Quit;
 
                 default:
                     break;
             }
         }
-        return MenuResult::Quit;
+        return MenuResult::Quit; // unreachable; silences -Wreturn-type warning
     }
 
 
