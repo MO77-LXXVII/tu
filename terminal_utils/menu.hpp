@@ -394,17 +394,19 @@ namespace terminal_utils
         using namespace terminal_utils;
 
         render_horizontal_border(_width); // Top border
+
+        constexpr int border_padding = 2; // account for '|' we manually print on each side
         
-        std::cout << "|" << output::print_aligned(bold(underline(_title)), _width, output::Alignment::Center) << "|" << std::endl;
+        std::cout << "|" << output::print_aligned(bold(underline(_title)), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
         for(const auto& subtitle : _global_subtitles)
-            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width, output::Alignment::Center) << "|" << std::endl;
+            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
         
         for(const auto& subtitle : _local_subtitles)
-            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width, output::Alignment::Center) << "|" << std::endl;
+            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
         if(_view_date)
-                std::cout << "|" << output::print_aligned(bold(underline("Date: " + _date.format())), _width, output::Alignment::Center) << "|" << std::endl;
+                std::cout << "|" << output::print_aligned(bold(underline("Date: " + _date.format())), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
         render_horizontal_border(_width, '='); // Separator
     }

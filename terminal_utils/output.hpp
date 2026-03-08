@@ -137,13 +137,13 @@ namespace terminal_utils::output
 
             const std::string str = oss.str();
 
-            int padding = (((a.width - 2) -  static_cast<int>(str.length())) / 2);
+            int padding = ((a.width -  static_cast<int>(str.length())) / 2);
 
             // int left_pad = padding / 2;
             int left_pad = std::max(0, padding);
 
             // int right_pad = padding - left_pad;
-            int right_pad = std::max(0, a.width - 2 - left_pad - static_cast<int>(str.length()));
+            int right_pad = std::max(0, a.width - left_pad - static_cast<int>(str.length()));
 
             os << std::string(left_pad, a.fill) << str 
                << std::string(right_pad, a.fill);
@@ -274,9 +274,12 @@ namespace terminal_utils::output
                         // missing cells currently render as empty
                         // - could be "null"/"NULL"
                         constexpr std::string_view null_placeholder = "";
+
+                        constexpr int border_padding = 2; // account for '|' we manually print on each side
+
                         std::string_view cell = (i < row.size()) ? row[i] : null_placeholder;
 
-                        std::cout << "|" << print_aligned(cell, col_widths[i] + extra_padding, alignment, ' ');
+                        std::cout << "|" << print_aligned(cell, col_widths[i] + (extra_padding - border_padding), alignment, ' ');
                     }
 
                     std::cout << "|" << std::endl;
