@@ -99,21 +99,22 @@ namespace terminal_utils::input
 
     /**
      * @brief Reads a single character from `stdin` for menu navigation
-     *
-     * @param prompt  Prompt to display before reading
+     * 
+     * @tparam T      any type with `operator<<`
+     * @param prompt  Prompt to display before reading (any type with `operator<<`)
      *
      * @return The character read, or `std::nullopt` on `EOF`
      *
      * @note Discards the remainder of the line unless the character read was `'\n'`
      */
-    inline std::optional<char> get_menu_key(const terminal_utils::ColouredText& prompt) noexcept
+    template<typename T>
+    inline std::optional<char> get_menu_key(const T& prompt) noexcept
     {
         std::cout << prompt;
         char c;
 
         if(std::cin.get(c))
         {
-            // Only discard if we didn't read a newline
             if(c != '\n')
                 discard_rest_of_line();
 
