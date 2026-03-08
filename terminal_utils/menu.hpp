@@ -153,7 +153,7 @@ namespace terminal_utils
              * useful for persistent info like *username* or *role*.
              *
              * @param text the subtitle text to add
-             * @return reference to this `Menu` for chaining
+             * @return reference to this `Menu` for chai    ning
              */
             Menu& add_global_subtitle(std::string text)
             {
@@ -296,23 +296,30 @@ namespace terminal_utils
             */
 
 
-            /** @brief Count how many items are selectable. */
+            /** @brief returns the number of items that are currently selectable */
             [[nodiscard]] int _get_selectable_count() const;
 
-            /** @brief Get the next selectable item after the current index.
-             *  Wraps around to the first selectable item if needed.
-             *  @param current Current selected index.
-             *  @return Index of the next selectable item.
+
+            /**
+             * @brief returns the index of the next selectable item after `current`
+             *
+             * @note wraps around to the first selectable item if the end is reached
+             *
+             * @param current the currently selected index
+             * @return index of the next selectable item, or `current` if none exist
              */
             [[nodiscard]] int _next_selectable(int current) const;
 
-            /** @brief Get the previous selectable item before the current index.
-             *  Wraps around to the last selectable item if needed.
-             *  @param current Current selected index.
-             *  @return Index of the previous selectable item.
+
+            /**
+             * @brief returns the index of the previous selectable item before `current`
+             *
+             * @note wraps around to the last selectable item if the beginning is reached
+             *
+             * @param current the currently selected index
+             * @return index of the previous selectable item, or `current` if none exist
              */
             [[nodiscard]] int _prev_selectable(int current) const;
-
 
 
             /* 
