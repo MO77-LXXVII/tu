@@ -201,10 +201,16 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             });
         }
 
+
         // =========================
-        // find() overload: by currency code
+        //         find()
         // =========================
-    public:
+
+        /**
+         * @brief find a single currency by code
+         * @param currency_code ISO currency code to search for
+         * @return the first matching record, or `std::nullopt` if not found
+         */
         [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
         {
             for (auto& u : load_all())
@@ -214,6 +220,12 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             return std::nullopt;
         }
 
+
+        /**
+         * @brief find all currencies sharing the same code (multiple countries can share a code)
+         * @param currency_code ISO currency code to search for
+         * @return all matching records, or `std::nullopt` if none found
+         */
         [[nodiscard]] static std::optional<std::vector<CurrencyExchange>> find_all(const std::string& currency_code)
         {
             std::vector<CurrencyExchange> currencies_with_same_code;
