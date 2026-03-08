@@ -576,12 +576,10 @@ namespace terminal_utils
 
     inline int Menu::_get_selectable_count() const
     {
-        int count = 0;
-        for(const auto& item : _items)
-            if(item.is_selectable())
-                ++count;
-
-        return count;
+        return std::count_if(_items.begin(), _items.end(),[](const MenuItem& item)
+        {
+            return item.is_selectable();
+        });
     }
     
 
