@@ -173,14 +173,35 @@ namespace terminal_utils::output
     std::ostream& operator<<(std::ostream& os, const Aligned<terminal_utils::ColouredText>& a);
 
 
+    /**
+     * @brief a simple table with automatic column width calculation
+     *
+     * rows are stored as vectors of `std::string_view`
+     * use `add_row()` when the underlying strings are guaranteed to outlive the table
+     * use `add_row(Table::own, ...)` to transfer string ownership into the table's internal storage.
+     *
+     * @note **missing cells** are rendered as empty strings, or as a user-specified value (e.g., `"null"`/`"NULL"`).
+     * 
+     * @example
+     * @code
+     * Table table;
+     * table.add_row({"id", "name", "score"});
+     * table.add_row({"1", "alice", "100"});
+     * table.add_row(Table::own, {dynamic_id, dynamic_name, dynamic_score});
+     *
+     * table.print(Alignment::Center);
+     * @endcode
+     */
     class Table
     {
         public:
             /** @brief tag type used to select the owning overload of `add_row()` */
             struct own_t {};
 
+
             /** @brief tag instance: pass as first argument to take ownership of cell strings */
             static constexpr own_t own{};
+
 
             /**
              * @brief adds a row of cells as views. caller must ensure strings outlive the `Table`
@@ -192,6 +213,7 @@ namespace terminal_utils::output
                 _rows.emplace_back(cells);
                 return *this;
             }
+
 
             /**
              * @brief adds a row of cells, copying strings into internal storage
@@ -214,12 +236,17 @@ namespace terminal_utils::output
                 return *this;
             }
 
-            /** @brief alias for `add_row(Table::own, cells)`: kept for backwards compatibility */
+
+            /**
+             * @brief alias for `add_row(Table::own, cells)`: kept for backwards compatibility
+             * @deprecated use `add_row(Table::own, ...)` instead
+             * */
             Table& add_row_owned(std::initializer_list<std::string_view> cells)
             {
                 add_row(own, cells);
                 return *this;
             }
+
 
             void print(Alignment alignment, int extra_padding = config::DEFAULT_PADDING) const
             {
