@@ -35,16 +35,16 @@ namespace terminal_utils
     };
 
 
-
-
-
     namespace
     {
+        /** @brief hides the terminal cursor using ANSI escape codes */
         void hide_cursor()
         {
-            std::cout << "\033[?25l"; // Hide cursor (ANSI)
+            // Hide cursor (ANSI)
+            std::cout << "\033[?25l";
         }
 
+        /** @brief restores the terminal cursor visibility using ANSI escape codes */
         void show_cursor()
         {
             // Show cursor (ANSI)
