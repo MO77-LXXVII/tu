@@ -13,20 +13,35 @@
 
 #include "config.hpp"
 
-// Forward declaration instead of including ansi_colours.hpp
-// to break circular dependency 
+
+/**
+ * Forward declaration of `ColouredText` to avoid including `ansi_colours.hpp` here
+ * as `ansi_colours.hpp` already includes `output.hpp`, so including it here would
+ * create a circular dependency
+ */
 namespace terminal_utils
 {
     class ColouredText;
 }
 
+
 namespace terminal_utils::output
 {
-    // RAII wrapper for sticky stream formatting state
-    // Does NOT save width() because std::setw() is not sticky (resets after each <<)
-    // this guarantees that the helpers don’t leak formatting into surrounding output
+    /**
+     * @brief RAII wrapper that saves and restores sticky stream formatting state.
+     *
+     * saves `flags()` and `fill()` on construction and restores them on destruction,
+     * guaranteeing that helpers don't leak formatting into surrounding output.
+     *
+     * @note does NOT save `width()` because `std::setw()` is not sticky
+     *       it resets automatically after each `operator<<`
+     */
     class FormatGuard
     {
+        /**
+         * @brief constructs a `FormatGuard` and saves the current formatting state of `os`
+         * @param os the stream to guard (default: `std::cout`)
+         */
         public:
             explicit FormatGuard(std::ostream& os = std::cout)
                 : stream_(os), 
@@ -34,6 +49,7 @@ namespace terminal_utils::output
                 old_fill_(os.fill())         // fill character (sticky)
             {}
 
+            /** @brief restores the saved formatting state to the guarded stream */
             ~FormatGuard()
             {
                 stream_.flags(old_flags_);
@@ -44,34 +60,71 @@ namespace terminal_utils::output
             FormatGuard& operator=(const FormatGuard&) = delete;
 
         private:
-            std::ostream& stream_;
-            std::ios::fmtflags old_flags_;
-            char old_fill_;
+            std::ostream& stream_;         ///< reference to the guarded stream
+            std::ios::fmtflags old_flags_; ///< saved format flags
+            char old_fill_;                ///< saved fill character
     };
 
-    // Alignment enum
+
+    /** @brief text alignment options for use with `print_aligned()` and `Table::print()` */
     enum class Alignment { Left, Right, Center };
 
-    // format descriptor struct to hold formatting parameters
-    // delay actual printing until `operator<<`
-    // `width` is a minimum, not a maximum: caller must ensure text fits or it will overflow
+
+    /**
+     * @brief format descriptor that bundles a value with its alignment parameters.
+     *
+     * delays actual printing until `operator<<` is called on the struct.
+     *
+     * @tparam T the type of the value to align
+     *
+     * @note `width` is a minimum, not a maximum: caller must ensure text fits or it will overflow.
+     *       `const T&` avoids copying large objects and works with temporaries passed through `print_aligned()`
+     */
     template<typename T>
     struct Aligned
     {
         // storing const T& avoids copying large objects and works with "temporaries" passed through `print_aligned()`
-        const T& value;
-        int width;
-        Alignment align;
-        char fill;
+        const T& value;  ///< reference to the value to print
+        int width;       ///< *minimum* field width
+        Alignment align; ///< text alignment within the field
+        char fill;       ///< fill character for padding
     };
 
+
     // Factory function deduces T automatically (template argument deduction)
+    /**
+     * @brief factory function that constructs an `Aligned<T>` with deduced type `T`
+     *
+     * @tparam T        the type of the value to align (deduced automatically)
+     * 
+     * @param value     the value to print
+     * @param width     minimum field width
+     * @param align     text alignment (default: `Alignment::Left`)
+     * @param fill      fill character for padding (default: `' '`)
+     * 
+     * @return          an `Aligned<T>` descriptor ready for `operator<<`
+     */
     template<typename T>
     Aligned<T> print_aligned(const T& value, int width, Alignment align = Alignment::Left, char fill = ' ')
     {
         return Aligned<T>{value, width, align, fill};
     }
 
+
+    /**
+     * @brief stream insertion operator for `Aligned<T>`
+     *
+     * applies alignment padding around the value and writes it to `os`
+     * uses `FormatGuard` to ensure stream formatting state is not leaked
+     *
+     * @tparam T    the type of the wrapped value
+     * @param os    the output stream to write to
+     * @param a     the `Aligned<T>` descriptor containing the value and formatting parameters
+     * @return      reference to `os` for chaining
+     *
+     * @note for `ColouredText`, use the explicit specialization which accounts
+     *       for ANSI escape codes being excluded from padding calculations
+     */
     template<typename T>
     std::ostream& operator<<(std::ostream& os, const Aligned<T>& a)
     {
@@ -81,8 +134,9 @@ namespace terminal_utils::output
         {
             std::ostringstream oss;
             oss << a.value;
+
             const std::string str = oss.str();
-            // int padding = std::max(0, a.width - static_cast<int>(str.length()));
+
             int padding = (((a.width - 2) -  static_cast<int>(str.length())) / 2);
 
             // int left_pad = padding / 2;
@@ -95,15 +149,6 @@ namespace terminal_utils::output
                << std::string(right_pad, a.fill);
         }
 
-        // // Title centered
-        // int padding = (_width - 2 - static_cast<int>(_title.length())) / 2;
-        // int left_pad = std::max(0, padding);
-        // int right_pad = std::max(0, _width - 2 - left_pad - static_cast<int>(_title.length()));
-
-        // std::cout << "|" << std::string(left_pad, ' ') 
-        //         << bold(white(_title)) 
-        //         << std::string(right_pad, ' ') << "|\n";
-
         else
         {
             os << std::setfill(a.fill) << std::setw(a.width);
@@ -113,11 +158,21 @@ namespace terminal_utils::output
         return os;
     }
 
-    // Forward declare the specialization (definition will be in ansi_colours.hpp)
+
+    /**
+     * @brief specialization of `operator<<` for `Aligned<ColouredText>`
+     *
+     * the generic version streams the value into a temporary `std::ostringstream`
+     * to measure its length for padding — this loses ANSI escape codes, printing plain text only
+     * this specialization accesses `_text` directly for width calculation,
+     * then outputs the full `ColouredText` object with its ANSI codes intact
+     *
+     * definition lives in `ansi_colours.hpp` where `ColouredText` is fully defined
+     */
     template<>
     std::ostream& operator<<(std::ostream& os, const Aligned<terminal_utils::ColouredText>& a);
 
-    // add ostream later to support file I/O
+
     class Table
     {
         public:
