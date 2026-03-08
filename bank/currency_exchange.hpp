@@ -193,7 +193,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             {
                 double diff = a.m_rate - b.m_rate;
 
-                if (fabs(diff) > epsilon)
+                if(fabs(diff) > epsilon)
                     return diff < 0.0;
 
                 // tie-breaker to preserve strict ordering
@@ -213,8 +213,8 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
          */
         [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
         {
-            for (auto& u : load_all())
-                if (u.m_currency_code == currency_code)
+            for(auto& u : load_all())
+                if(u.m_currency_code == currency_code)
                     return u;
 
             return std::nullopt;
@@ -354,11 +354,16 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         // =========================
 
 
+        /**
+         * @brief print this record's details as a formatted table
+         * @param show_index whether to include an index column
+         * @param index      index value to display (only used if `show_index` is `true`)
+         */
         void print_currency_details(bool show_index = false, int index = 0) const
         {
             terminal_utils::output::Table table;
 
-            if (show_index)
+            if(show_index)
             {
                 table.add_row({"Index", "Country", "Currency Code", "Currency Name", "Exchange Rate"});
                 table.add_row({std::to_string(index), m_country, m_currency_code, m_currency_name, std::to_string(m_rate)});
@@ -372,19 +377,25 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             table.print(terminal_utils::output::Alignment::Center);
         }
 
+
+        /**
+         * @brief print a list of currency records as a formatted table
+         * @param currencies_with_same_code records to display
+         * @param show_index                whether to include an index column
+         */
         static void print_currency_details(std::vector<CurrencyExchange> currencies_with_same_code, bool show_index = false)
         {
             terminal_utils::output::Table table;
 
-            if (show_index)
+            if(show_index)
                 table.add_row({"Index", "Country", "Currency Code", "Currency Name", "Exchange Rate"});
             else
                 table.add_row({"Country", "Currency Code", "Currency Name", "Exchange Rate"});
 
-            for (size_t i = 0; i < currencies_with_same_code.size(); ++i)
+            for(size_t i = 0; i < currencies_with_same_code.size(); ++i)
             {
                 const auto& c = currencies_with_same_code[i];
-                if (show_index)
+                if(show_index)
                     table.add_row_owned({std::to_string(i + 1), c.m_country, c.m_currency_code, c.m_currency_name, std::to_string(c.m_rate)});
                 else
                     table.add_row_owned({c.m_country, c.m_currency_code, c.m_currency_name, std::to_string(c.m_rate)});
@@ -397,6 +408,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             table.print(terminal_utils::output::Alignment::Center);
         }
 
+        /** @brief print all currency records in the system, or a message if none exist */
         static void list_available_currencies()
         {
             auto currencies = load_all();
@@ -410,10 +422,12 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             print_currency_details(currencies);
         }
 
+
         // =========================
-        // UI — CRUD actions
+        //    UI CRUD operations
         // =========================
-    public:
+
+
         static void add_currency()
         {
             CurrencyExchange user = CurrencyExchange::make_new(get_valid_currency_code());
@@ -438,7 +452,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 
         static CurrencyExchange select_from_matches(const std::vector<CurrencyExchange>& matches)
         {
-            if (matches.size() == 1) // single element
+            if(matches.size() == 1) // single element
                 return matches[0];
 
             // multiple elements
