@@ -17,9 +17,8 @@
 
 
 // ============================================================
-// BankClient
+// CurrencyExchange
 // Inherits shared persistence from PersistentEntity<BankClient>
-// Inherits shared person fields from Person
 // Only implements the 5 required CRTP hooks + its own business logic
 // ============================================================
 

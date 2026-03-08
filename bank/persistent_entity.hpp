@@ -208,6 +208,7 @@ class PersistentEntity
             return static_cast<Derived&>(*this);
         }
 
+
         /** @brief const overload of `self()` for use in const member functions */
         const Derived& self() const
         {
