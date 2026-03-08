@@ -45,7 +45,7 @@ namespace terminal_utils
      *
      * navigation uses W/S (or J/K) to move, E/Enter to select, and Q to quit.
      *
-     * @note `_global_subtitles` and `_date` are shared across all `Menu` instances via `inline static`
+     * @note `m_global_subtitles` and `m_date` are shared across all `Menu` instances via `inline static`
      *
      * @code
      * Menu::create("Main Menu")
@@ -65,7 +65,7 @@ namespace terminal_utils
              * @note prefer using the `Menu::create()` factory for a more expressive fluent interface
              */
             explicit Menu(std::string title) 
-                : _title(std::move(title)), _selected_index(-1) {}
+                : m_title(std::move(title)), m_selected_index(-1) {}
 
 
             /**
@@ -102,7 +102,7 @@ namespace terminal_utils
              */
             Menu& set_width(int width) 
             {
-                _width = width; 
+                m_width = width; 
                 return *this; 
             }
 
@@ -110,15 +110,15 @@ namespace terminal_utils
             /**
              * @brief enables the date display in the menu title area
              *
-             * sets `_date` to today's date and enables rendering it below the title.
+             * sets `m_date` to today's date and enables rendering it below the title.
              * shared across all `Menu` instances via `inline static`
              *
              * @return reference to this `Menu` for chaining
              */
             Menu& set_date() 
             { 
-                _date = utils::Date::today();
-                _view_date = true;
+                m_date = utils::Date::today();
+                m_show_date = true;
                 return *this; 
             }
 
@@ -129,7 +129,7 @@ namespace terminal_utils
              */
             Menu& reset_date() 
             {
-                _view_date = false;
+                m_show_date = false;
                 return *this; 
             }
 
@@ -141,7 +141,7 @@ namespace terminal_utils
              */
             Menu& set_highlight_colour(Colour colour)
             {
-                _highlight_colour = colour;
+                m_highlight_colour = colour;
                 return *this;
             }
 
@@ -157,7 +157,7 @@ namespace terminal_utils
              */
             Menu& add_global_subtitle(std::string text)
             {
-                auto& subtitles = _global_subtitles; // local alias
+                auto& subtitles = m_global_subtitles; // local alias
     
                 if(std::find(subtitles.begin(), subtitles.end(), text) == subtitles.end())
                     subtitles.emplace_back(std::move(text));
@@ -172,7 +172,7 @@ namespace terminal_utils
              */
             Menu& add_subtitle(std::string text)
             {
-                _local_subtitles.emplace_back(std::move(text));
+                m_local_subtitles.emplace_back(std::move(text));
                 return *this;
             }
 
@@ -183,7 +183,7 @@ namespace terminal_utils
              */
             Menu& reset_global_subtitles()
             {
-                _global_subtitles.clear();
+                m_global_subtitles.clear();
                 return *this;
             }
 
@@ -203,7 +203,7 @@ namespace terminal_utils
              */
             Menu& add_item(std::string label, std::function<void()> action)
             {
-                _items.emplace_back(std::move(label), std::move(action));
+                m_items.emplace_back(std::move(label), std::move(action));
                 return *this;
             }
 
@@ -220,7 +220,7 @@ namespace terminal_utils
              */
             Menu& add_item(std::string label, std::function<void()> action, std::function<bool()> visibility)
             {
-                _items.emplace_back(std::move(label), std::move(action),
+                m_items.emplace_back(std::move(label), std::move(action),
                                     false /* not a separator, this is a selectable item */, std::move(visibility));
                 return *this;
             }
@@ -235,7 +235,7 @@ namespace terminal_utils
              */
             Menu& add_separator()
             {
-                _items.emplace_back("-", nullptr, true);
+                m_items.emplace_back("-", nullptr, true);
                 return *this;
             }
 
@@ -350,33 +350,33 @@ namespace terminal_utils
                 =======================
                 
                 - SHARED (inline static - same for all menus):
-                    _global_subtitles  - Persistent info (username, role, system status)
+                    m_global_subtitles  - Persistent info (username, role, system status)
                     _date              - Current date/time
-                    _show_date         - Whether to show date in all menus
+                    m_show_date         - Whether to show date in all menus
 
                 - PER MENU (instance members):
-                    _title             - This menu's title (e.g., "Main Menu", "Settings")
-                    _local_subtitles   - This menu's dynamic info (e.g., "Page 2/5")
+                    m_title             - This menu's title (e.g., "Main Menu", "Settings")
+                    m_local_subtitles   - This menu's dynamic info (e.g., "Page 2/5")
                     _items             - Menu options
-                    _selected_index    - Current selection
-                    _width             - Menu width
-                    _highlight_colour  - Selection highlight color
+                    m_selected_index    - Current selection
+                    m_width             - Menu width
+                    m_highlight_colour  - Selection highlight color
                 =======================
             */
 
 
             // Shared across all instances
-            inline static std::vector<std::string> _global_subtitles;   ///< persistent info shown in all menus (e.g. username, role)
-            inline static utils::Date _date{};                          ///< current date displayed in the title area
-            inline static bool _view_date = false;                      ///< whether to show the date in all menus
+            inline static std::vector<std::string> m_global_subtitles;   ///< persistent info shown in all menus (e.g. username, role)
+            inline static utils::Date m_date{};                          ///< current date displayed in the title area
+            inline static bool m_show_date = false;                      ///< whether to show the date in all menus
 
             // Per-menu instance
-            std::string _title;                                         ///< text title displayed at the top of the menu
-            std::vector<std::string> _local_subtitles;                  ///< dynamic info local to this menu instance (e.g. "Page 2/5")
-            std::vector<MenuItem> _items;                               ///< list of menu items and separators
-            int _selected_index = -1;                                   ///< index of the currently selected item
-            int _width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
-            Colour _highlight_colour = Colour::Cyan;                    ///< colour used to highlight the selected item
+            std::string m_title;                                         ///< text title displayed at the top of the menu
+            std::vector<std::string> m_local_subtitles;                  ///< dynamic info local to this menu instance (e.g. "Page 2/5")
+            std::vector<MenuItem> m_items;                               ///< list of menu items and separators
+            int m_selected_index = -1;                                   ///< index of the currently selected item
+            int m_width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
+            Colour m_highlight_colour = Colour::Cyan;                    ///< colour used to highlight the selected item
     };
 
 
@@ -438,23 +438,23 @@ namespace terminal_utils
     {
         using namespace terminal_utils;
 
-        render_horizontal_border(_width); // Top border
+        render_horizontal_border(m_width); // Top border
 
         // subtract border_padding to account for the '|' characters we manually print on each side
         constexpr int border_padding = 2;
         
-        std::cout << "|" << output::print_aligned(bold(underline(_title)), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
+        std::cout << "|" << output::print_aligned(bold(underline(m_title)), m_width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
-        for(const auto& subtitle : _global_subtitles)
-            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
+        for(const auto& subtitle : m_global_subtitles)
+            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), m_width - border_padding, output::Alignment::Center) << "|" << std::endl;
         
-        for(const auto& subtitle : _local_subtitles)
-            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
+        for(const auto& subtitle : m_local_subtitles)
+            std::cout << "|" << output::print_aligned(bold(green(underline(subtitle))), m_width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
-        if(_view_date)
-                std::cout << "|" << output::print_aligned(bold(underline("Date: " + _date.format())), _width - border_padding, output::Alignment::Center) << "|" << std::endl;
+        if(m_show_date)
+                std::cout << "|" << output::print_aligned(bold(underline("Date: " + m_date.format())), m_width - border_padding, output::Alignment::Center) << "|" << std::endl;
 
-        render_horizontal_border(_width, '='); // Separator
+        render_horizontal_border(m_width, '='); // Separator
     }
 
 
@@ -482,17 +482,17 @@ namespace terminal_utils
     inline void Menu::render_items() const
     {
         // iterate through all menu items (including separators)
-        for(std::size_t i = 0; i < _items.size(); ++i)
+        for(std::size_t i = 0; i < m_items.size(); ++i)
         {
-            const auto& item = _items[i];
-            bool is_selected = (static_cast<int>(i) == _selected_index);
+            const auto& item = m_items[i];
+            bool is_selected = (static_cast<int>(i) == m_selected_index);
 
             // left border: every row starts with "| "
             std::cout << "| ";
 
             // --- SEPARATOR HANDLING ---
             if(item.is_separator())
-                render_separator(_width); // render a horizontal line across the menu width
+                render_separator(m_width); // render a horizontal line across the menu width
 
             // --- MENU ITEM HANDLING (not a separator) ---
             else
@@ -501,15 +501,15 @@ namespace terminal_utils
 
                 /*
                     calculate available space for the label:
-                    _width                  : total menu width
+                    m_width                  : total menu width
                     MENU_BORDER_WIDTH       : accounts for left and right "|" and "|" (2 characters)
                     MENU_SELECTOR_WIDTH     : space for "> " or "  " (2 characters)
                     MENU_PADDING            : extra padding spaces (2 characters)
 
-                    example: if _width = 40, border = 2, selector = 2, padding = 2
+                    example: if m_width = 40, border = 2, selector = 2, padding = 2
                     max_label_width = 40 - (2 + 2 + 2) = 34 characters for the label
                 */
-                int max_label_width = _width - (MENU_BORDER_WIDTH + MENU_SELECTOR_WIDTH + MENU_PADDING);
+                int max_label_width = m_width - (MENU_BORDER_WIDTH + MENU_SELECTOR_WIDTH + MENU_PADDING);
 
                 if(static_cast<int>(label.length()) > max_label_width)
                     label = label.substr(0, max_label_width - 3) + "..."; // truncate and add ellipsis: "Very Long Menu Option..." 
@@ -537,7 +537,7 @@ namespace terminal_utils
                 {
                     // Render with highlight colour (e.g., Cyan)
                     // Uses "> " as selector + highlighted label
-                    std::cout << ColouredText(("> " + label), _highlight_colour);
+                    std::cout << ColouredText(("> " + label), m_highlight_colour);
                     std::cout << std::string(std::max(0, padding), ' ');
                 }
 
@@ -566,7 +566,7 @@ namespace terminal_utils
     inline void Menu::render_footer() const
     {
         // Bottom border
-        render_horizontal_border(_width);
+        render_horizontal_border(m_width);
 
         // Help text
         std::cout << dim("W/K: Up  S/J: Down  E: Select  q: Quit") << "\n";
@@ -596,7 +596,7 @@ namespace terminal_utils
 
     inline int Menu::get_selectable_count() const
     {
-        return std::count_if(_items.begin(), _items.end(),[](const MenuItem& item)
+        return std::count_if(m_items.begin(), m_items.end(),[](const MenuItem& item)
         {
             return item.is_selectable();
         });
@@ -612,13 +612,13 @@ namespace terminal_utils
 
     inline int Menu::_next_selectable(int current) const
     {
-        for(int i = current + 1; i < _items.size(); ++i)
-            if(_items[i].is_selectable())
+        for(int i = current + 1; i < m_items.size(); ++i)
+            if(m_items[i].is_selectable())
                 return i;
 
         // Wrap to first selectable
-        for(int i = 0; i < _items.size(); ++i)
-            if(_items[i].is_selectable())
+        for(int i = 0; i < m_items.size(); ++i)
+            if(m_items[i].is_selectable())
                 return i;
 
         return current;
@@ -628,12 +628,12 @@ namespace terminal_utils
     inline int Menu::_prev_selectable(int current) const
     {
         for(int i = current - 1; i >= 0; --i)
-            if(_items[i].is_selectable())
+            if(m_items[i].is_selectable())
                 return i;
 
         // Wrap to last selectable
-        for(int i = static_cast<int>(_items.size()) - 1; i >= 0; --i)
-            if(_items[i].is_selectable())
+        for(int i = static_cast<int>(m_items.size()) - 1; i >= 0; --i)
+            if(m_items[i].is_selectable())
                 return i;
 
         return current;
@@ -645,11 +645,11 @@ namespace terminal_utils
         if(!platform::is_terminal())
             return MenuResult::Error;
 
-        // initialize or reset `_selected_index` if it's unset, out of bounds, or pointing to a non-selectable item
-        if(_selected_index == -1 || _selected_index >= static_cast<int>(_items.size()) || !_items[_selected_index].is_selectable())
-            _selected_index = _next_selectable(-1);
+        // initialize or reset `m_selected_index` if it's unset, out of bounds, or pointing to a non-selectable item
+        if(m_selected_index == -1 || m_selected_index >= static_cast<int>(m_items.size()) || !m_items[m_selected_index].is_selectable())
+            m_selected_index = _next_selectable(-1);
 
-        if(_selected_index < 0)
+        if(m_selected_index < 0)
             return MenuResult::Error; // _next_selectable() returns -1 when no selectable items exist
 
         while(true)
@@ -673,22 +673,22 @@ namespace terminal_utils
                 case 'j': // vim-style down
                     [[fallthrough]];
                 case 's':
-                    _selected_index = _next_selectable(_selected_index);
+                    m_selected_index = _next_selectable(m_selected_index);
                     break;
 
                 case 'k': // vim-style up
                     [[fallthrough]];
                 case 'w':
-                    _selected_index = _prev_selectable(_selected_index);
+                    m_selected_index = _prev_selectable(m_selected_index);
                     break;
 
                 case '\n': // Enter key (various terminals)
                     [[fallthrough]];
                 case '\r':
                 case 'e':
-                    if(_selected_index >= 0 && _selected_index < static_cast<int>(_items.size()))
+                    if(m_selected_index >= 0 && m_selected_index < static_cast<int>(m_items.size()))
                     {
-                        const auto& item = _items[_selected_index];
+                        const auto& item = m_items[m_selected_index];
                         if(item.is_selectable())
                         {
                             // execute() calls show_cursor() internally before invoking the action
