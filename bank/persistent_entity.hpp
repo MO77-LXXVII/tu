@@ -62,47 +62,59 @@
 static constexpr std::string_view SEPARATOR = "#//#";
 
 // ============================================================
-// CRTP Base — all shared persistence logic lives here
+//    CRTP Base: all shared persistence logic lives here
 // ============================================================
 
 template<typename Derived>
 class PersistentEntity
 {
     public:
-
-        // ----------------------------------------------------------
-        // Mode — controls what save() does
-        // ----------------------------------------------------------
+        /**
+         * @brief controls the behaviour of `save()`
+         * 
+         * - `empty_mode`:  no-op, `save()` does nothing
+         * 
+         * - `add_mode`:    appends this record to the file
+         * 
+         * - `update_mode`: overwrites the matching record in the file
+         * 
+         * - `delete_mode`: removes the matching record from the file
+         */
         enum class Mode { empty_mode, add_mode, update_mode, delete_mode };
 
-        // ----------------------------------------------------------
-        // Public API — same for ALL entities, written once
-        // ----------------------------------------------------------
+
+        // =========================
+        //       Public API 
+        // =========================
+
 
         /**
-         * @brief Load all records from the entity's file.
-         * Calls Derived::file_name() and Derived::decode() internally.
+         * @brief load all records from the entity's file
+         * @return vector of all decoded records, empty if the file cannot be opened
+         * @note calls `Derived::file_name()` and `Derived::decode()` internally
          */
         [[nodiscard]] static std::vector<Derived> load_all()
         {
             std::vector<Derived> records;
 
             std::ifstream file(Derived::file_name().data());
-            if (!file.is_open())
+            if(!file.is_open())
                 return records;
 
             std::string line;
-            while (std::getline(file, line))
-                if (!line.empty())
+            while(std::getline(file, line))
+                if(!line.empty())
                     records.push_back(Derived::decode(line));
 
             return records;
         }
 
+
         /**
-         * @brief Find a single record by key.
-         * Calls Derived::matches_key() to compare.
-         * @return std::nullopt if not found.
+         * @brief  find a single record by `key`
+         * @param  key the unique identifier to search for
+         * @return the matching record, or `std::nullopt` if not found
+         * @note   calls `Derived::matches_key()` to compare
          */
         [[nodiscard]] static std::optional<Derived> find(const std::string& key)
         {
@@ -113,18 +125,28 @@ class PersistentEntity
             return std::nullopt;
         }
 
+
         /**
-         * @brief Check if a record with the given key exists.
+         * @brief check if a record with the given key exists
+         * @param key the unique identifier to search for
+         * @return `true` if found, `false` otherwise
          */
         [[nodiscard]] static bool exists(const std::string& key)
         {
             return find(key).has_value();
         }
 
+
         /**
-         * @brief Save, update, or delete based on current Mode.
-         * No parameters needed — mode is stored in the object.
-         * @return true on success, false on I/O failure
+         * @brief persist this record according to its current `Mode`
+         * 
+         * - `add_mode`    → appends this record
+         * - `update_mode` → overwrites the matching record
+         * - `delete_mode` → removes the matching record
+         * - `empty_mode`  → no-op
+         * 
+         * @return `true` on success, `false` on I/O failure
+         * @see set_mode()
          */
         bool save()
         {
@@ -138,9 +160,12 @@ class PersistentEntity
             return false;
         }
 
+
         /**
-         * @brief Set the mode of this record.
-         * Allows: entity.set_mode(Mode::update_mode).save();
+         * @brief set the persistence mode of this record
+         * @param mode the `Mode` to apply on the next `save()` call
+         * @return reference to the derived object (allows chaining)
+         * @note usage: `entity.set_mode(Mode::update_mode).save()`
          */
         Derived& set_mode(Mode mode)
         {
@@ -148,18 +173,24 @@ class PersistentEntity
             return self();
         }
 
+
+        /** @brief returns the current persistence `Mode` of this record */
         [[nodiscard]] Mode mode() const noexcept { return _mode; }
 
+
+        /** @brief returns `true` if this record has no pending persistence operation */
         [[nodiscard]] bool is_empty() const noexcept
         {
             return _mode == Mode::empty_mode;
         }
+
 
     protected:
         Mode _mode = Mode::empty_mode;
 
         // Protected constructor so derived classes set the mode
         explicit PersistentEntity(Mode mode = Mode::empty_mode) : _mode(mode) {}
+
 
     private:
 
