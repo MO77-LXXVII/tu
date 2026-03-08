@@ -199,6 +199,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
 
         static void sort(std::vector<BankUser>& records)
         {
+            // `stable_sort()` preserves the relative order of records with equal rates,
+            // allowing users to rely on consistent ordering between saves
             std::stable_sort(records.begin(), records.end(), [](const BankUser& a, const BankUser& b)
             {
                 return a.m_permissions < b.m_permissions;
