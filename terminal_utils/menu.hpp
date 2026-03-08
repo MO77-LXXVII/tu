@@ -157,11 +157,10 @@ namespace terminal_utils
              */
             Menu& add_global_subtitle(std::string text)
             {
-                for(const auto& s: _global_subtitles)
-                    if(s == text)
-                        return *this; // already exists, skip
-
-                _global_subtitles.emplace_back(std::move(text));
+                auto& subtitles = _global_subtitles; // local alias
+    
+                if(std::find(subtitles.begin(), subtitles.end(), text) == subtitles.end())
+                    subtitles.emplace_back(std::move(text));
                 return *this;
             }
 
