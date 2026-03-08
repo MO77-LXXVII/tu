@@ -16,7 +16,7 @@ namespace terminal_utils
      * Abstracts stack-based navigation so users of the library
      * don't need to manage a navigation stack manually.
      * 
-     * @example
+     * @code
      * MenuNavigator nav;
      * nav.add("main", [&](MenuNavigator& n)
      * {
@@ -30,6 +30,7 @@ namespace terminal_utils
      *         .add_item("Back", [&]{ n.pop(); });
      * });
      * nav.run("main");
+     * @endcode
      */
     class MenuNavigator
     {
