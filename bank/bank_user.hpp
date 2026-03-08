@@ -14,7 +14,7 @@
 #include "../platform/platform.hpp"
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
-#include "bank/crtp_bank.hpp"
+#include "bank/persistent_entity.hpp"
 
 // max value: 8191
 enum class Permission : uint32_t
