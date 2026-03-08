@@ -176,25 +176,48 @@ namespace terminal_utils::output
     class Table
     {
         public:
-            // initializer_list allows: table.add_row({"id", "name", "score"});
+            /** @brief tag type used to select the owning overload of `add_row()` */
+            struct own_t {};
+
+            /** @brief tag instance: pass as first argument to take ownership of cell strings */
+            static constexpr own_t own{};
+
+            /**
+             * @brief adds a row of cells as views. caller must ensure strings outlive the `Table`
+             * @param cells the cell values for this row
+             * @return reference to this `Table` for chaining
+             */
             Table& add_row(std::initializer_list<std::string_view> cells)
             {
                 _rows.emplace_back(cells);
-                return *this; // allows chaining
+                return *this;
             }
 
-            Table& add_row_owned(std::initializer_list<std::string_view> cells)
+            /**
+             * @brief adds a row of cells, copying strings into internal storage
+             * safe to use with temporaries or strings with uncertain lifetime
+             * @param cells the cell values for this row
+             * @return reference to this `Table` for chaining
+             */
+            Table& add_row(own_t, std::initializer_list<std::string_view> cells)
             {
                 std::vector<std::string_view> row;
                 row.reserve(cells.size());
 
                 for (auto& cell : cells)
                 {
-                    _owned_storage.emplace_back(cell); // copy into owned storage
+                    _owned_storage.emplace_back(cell);
                     row.emplace_back(_owned_storage.back());
                 }
 
                 _rows.emplace_back(std::move(row));
+                return *this;
+            }
+
+            /** @brief alias for `add_row(Table::own, cells)`: kept for backwards compatibility */
+            Table& add_row_owned(std::initializer_list<std::string_view> cells)
+            {
+                add_row(own, cells);
                 return *this;
             }
 
