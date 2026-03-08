@@ -101,45 +101,61 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
                 m_rate(rate)
         {}
 
+
         // =========================
         //     Factory helpers
         // =========================
 
+
+        /** @brief creates an empty sentinel object: equivalent to default construction */
         static CurrencyExchange make_empty()
         {
             return CurrencyExchange{};
         }
 
-        // Creates a shell in add_mode with only a username set;
-        // caller fills in the rest via read_currency_info()
+
+        /**
+         * @brief creates a shell in `add_mode` with only the currency code set
+         * @param currency_code ISO currency code for the new entry
+         * @note caller fills in the remaining fields via `read_currency_info()`
+         */
         static CurrencyExchange make_new(std::string currency_code)
         {
             return CurrencyExchange(Mode::add_mode, "", std::move(currency_code), "", 0);
         }
 
+
         // =========================
         //    Required CRTP hooks
         // =========================
 
+
+        /** @brief returns the file path for currency exchange records */
         [[nodiscard]] static std::string_view file_name()
         {
             return terminal_utils::config::CURRENCY_EXCHANGE_FILE_NAME;
         }
 
-        // line format: first#//#last#//#email#//#phone#//#account#//#pin#//#balance
+
+        /**
+         * @brief deserialize a line from the file into a `CurrencyExchange` object
+         * @note line format: `country#//#currency_code#//#currency_name#//#rate`
+         */
         [[nodiscard]] static CurrencyExchange decode(const std::string& line)
         {
             auto cd = stutl::String::split(line, SEPARATOR);
 
             return CurrencyExchange(
-                Mode::update_mode,                                                   // loaded from file → ready to update
-                cd[0],                                                               // m_country
-                cd[1],                                                               // m_currency_code
-                cd[2],                                                               // m_currency_name
-                std::stod(cd[3])                                                     // m_rate
+                Mode::update_mode,      // loaded from file → ready to update
+                cd[0],                  // m_country
+                cd[1],                  // m_currency_code
+                cd[2],                  // m_currency_name
+                std::stod(cd[3])        // m_rate
             );
         }
 
+
+        /** @brief serialize this object into a file line */
         [[nodiscard]] std::string encode() const
         {
             return m_country              + std::string(SEPARATOR)
@@ -148,16 +164,25 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
                  + std::to_string(m_rate);
         }
 
+
+        /** @brief returns the currency code as the unique key */
         [[nodiscard]] std::string key() const
         {
             return m_currency_code;
         }
 
+
+        /** @brief returns `true` if this record's currency code matches `k` */
         [[nodiscard]] bool matches_key(std::string_view k) const
         {
             return m_currency_code == k;
         }
 
+
+        /**
+         * @brief sort records by exchange rate ascending, with currency code as tie-breaker
+         * @param records the records to sort in place
+         */
         static void sort(std::vector<CurrencyExchange>& records)
         {
             constexpr double epsilon = 1e-6;
