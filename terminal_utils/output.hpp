@@ -182,7 +182,6 @@ namespace terminal_utils::output
      *
      * @note **missing cells** are rendered as empty strings, or as a user-specified value (e.g., `"null"`/`"NULL"`).
      * 
-     * @example
      * @code
      * Table table;
      * table.add_row({"id", "name", "score"});
@@ -252,6 +251,7 @@ namespace terminal_utils::output
             /**
              * @brief prints the table with borders and alignment
              *
+             * @details
              * computes column widths automatically from cell contents, then prints
              * a bordered table with a separator after every row including the last
              *
@@ -259,7 +259,6 @@ namespace terminal_utils::output
              * @param extra_padding    extra space added to each cell beyond its content width (default: `config::DEFAULT_PADDING`)
              * @param null_placeholder text to display for **missing cells** default is empty string, can be a user-specified value (e.g., `"null"`/`"NULL"`)
              *
-             * @example
              * @code
              * table.print(Alignment::Center);
              * table.print(Alignment::Left, 4, "NULL");

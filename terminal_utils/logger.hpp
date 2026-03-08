@@ -58,7 +58,6 @@ namespace utils
      * provides leveled logging with optional console and file output
      * configured via a fluent interface. use the `LOG_*` macros for convenience
      *
-     * @example
      * @code
      * utils::Logger::instance()
      *     .set_level(utils::LogLevel::Debug)
