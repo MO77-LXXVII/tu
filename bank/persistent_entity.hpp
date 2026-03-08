@@ -197,20 +197,29 @@ class PersistentEntity
 
 
     private:
-        // ----------------------------------------------------------
-        // Internal helpers — call Derived's encode/decode/sort
-        // ----------------------------------------------------------
+        // =========================
+        //     Internal helpers
+        // =========================
 
+
+        /** @brief downcast `this` to the derived type for CRTP dispatch */
         Derived& self()
         {
             return static_cast<Derived&>(*this);
         }
 
+        /** @brief const overload of `self()` for use in const member functions */
         const Derived& self() const
         {
             return static_cast<const Derived&>(*this);
         }
 
+
+        /**
+         * @brief   sort and write all records to the entity's file, overwriting existing content
+         * @param   records the records to write
+         * @return `true` on success, `false` if the file cannot be opened or a write fails
+         */
         static bool _write_all(std::vector<Derived>& records)
         {
             Derived::sort(records);
@@ -230,6 +239,8 @@ class PersistentEntity
             return true;
         }
 
+
+        /** @brief append this record to the file */
         bool _add()
         {
             std::vector<Derived> records = load_all();
@@ -239,6 +250,8 @@ class PersistentEntity
             return _write_all(records);
         }
 
+
+        /** @brief overwrite the matching record in the file with this object's current state */
         bool _update()
         {
             auto records = load_all();
@@ -254,13 +267,17 @@ class PersistentEntity
             return _write_all(records);
         }
 
+
+        /** @brief remove the matching record from the file */
         bool _remove()
         {
             auto records = load_all();
 
             records.erase(
-                std::remove_if(records.begin(), records.end(),
-                    [&](const Derived& r) { return r.matches_key(self().key()); }),
+                std::remove_if(records.begin(), records.end(), [&](const Derived& r)
+                {
+                    return r.matches_key(self().key());
+                }),
                 records.end()
             );
 
@@ -272,8 +289,8 @@ class PersistentEntity
 // What each Derived class MUST implement:
 //
 //   static std::string_view file_name()         → file path
-//   static Derived decode(const std::string&)   → parse line → object
-//   std::string encode() const                  → object → line
+//   static Derived decode(const std::string&)   → parse line        → object
+//   std::string encode() const                  → convert object    → line
 //   std::string key() const                     → unique identifier
 //   bool matches_key(const std::string&) const  → comparison
 //   static void sort(std::vector<Derived>&)     → custom sort before write
