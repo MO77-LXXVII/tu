@@ -278,7 +278,7 @@ namespace terminal_utils
             /**
              * @brief returns the number of items that are currently selectable
              * 
-             * @note DIAGNOSTIC FUNCTION: useful for debugging menu state and validation.
+             * @note **diagnostic function**: useful for debugging menu state and validation.
              * 
              * Example debug usage:
              * 
@@ -295,7 +295,7 @@ namespace terminal_utils
             [[nodiscard]] int get_selectable_count() const;
 
         private:
-            /* 
+            /*
                 ======================
                 UI rendering methods
                 ======================
@@ -303,16 +303,16 @@ namespace terminal_utils
 
 
             /** @brief clears the terminal and renders title, items, and footer in order */
-            void render() const;
+            void m_render() const;
 
             /** @brief renders the title, global/local subtitles, and optional date, wrapped in borders */
-            void render_title() const;
+            void m_render_title() const;
 
             /** @brief renders all menu items, highlighting the selected one and dimming invisible items */
-            void render_items() const;
+            void m_render_items() const;
 
             /** @brief renders the bottom border and navigation key hints */
-            void render_footer() const;
+            void m_render_footer() const;
 
 
             /* 
@@ -330,7 +330,7 @@ namespace terminal_utils
              * @param current the currently selected index
              * @return index of the next selectable item, or `current` if none exist
              */
-            [[nodiscard]] int _next_selectable(int current) const;
+            [[nodiscard]] int m_next_selectable(int current) const;
 
 
             /**
@@ -341,7 +341,7 @@ namespace terminal_utils
              * @param current the currently selected index
              * @return index of the previous selectable item, or `current` if none exist
              */
-            [[nodiscard]] int _prev_selectable(int current) const;
+            [[nodiscard]] int m_prev_selectable(int current) const;
 
 
             /* 
@@ -434,7 +434,7 @@ namespace terminal_utils
      * +======================================+   <- section separator
      * @endcode
      */
-    inline void Menu::render_title() const
+    inline void Menu::m_render_title() const
     {
         using namespace terminal_utils;
 
@@ -479,7 +479,7 @@ namespace terminal_utils
      *                                Truncated
      * @endcode
      */
-    inline void Menu::render_items() const
+    inline void Menu::m_render_items() const
     {
         // iterate through all menu items (including separators)
         for(std::size_t i = 0; i < m_items.size(); ++i)
@@ -563,7 +563,7 @@ namespace terminal_utils
      * W/K: Up  S/J: Down  E: Select  q: Quit
      * @endcode
      */
-    inline void Menu::render_footer() const
+    inline void Menu::m_render_footer() const
     {
         // Bottom border
         render_horizontal_border(m_width);
@@ -578,12 +578,12 @@ namespace terminal_utils
      *
      * renders in order: title → items → footer
      */
-    inline void Menu::render() const
+    inline void Menu::m_render() const
     {
         platform::clear_terminal();
-        render_title();
-        render_items();
-        render_footer();
+        m_render_title();
+        m_render_items();
+        m_render_footer();
     }
 
 
@@ -610,7 +610,7 @@ namespace terminal_utils
     */
 
 
-    inline int Menu::_next_selectable(int current) const
+    inline int Menu::m_next_selectable(int current) const
     {
         for(int i = current + 1; i < m_items.size(); ++i)
             if(m_items[i].is_selectable())
@@ -625,7 +625,7 @@ namespace terminal_utils
     }
 
 
-    inline int Menu::_prev_selectable(int current) const
+    inline int Menu::m_prev_selectable(int current) const
     {
         for(int i = current - 1; i >= 0; --i)
             if(m_items[i].is_selectable())
@@ -647,14 +647,14 @@ namespace terminal_utils
 
         // initialize or reset `m_selected_index` if it's unset, out of bounds, or pointing to a non-selectable item
         if(m_selected_index == -1 || m_selected_index >= static_cast<int>(m_items.size()) || !m_items[m_selected_index].is_selectable())
-            m_selected_index = _next_selectable(-1);
+            m_selected_index = m_next_selectable(-1);
 
         if(m_selected_index < 0)
-            return MenuResult::Error; // _next_selectable() returns -1 when no selectable items exist
+            return MenuResult::Error; // m_next_selectable() returns -1 when no selectable items exist
 
         while(true)
         {
-            render();
+            m_render();
             hide_cursor();
 
             auto key_opt = input::get_menu_key();
@@ -673,13 +673,13 @@ namespace terminal_utils
                 case 'j': // vim-style down
                     [[fallthrough]];
                 case 's':
-                    m_selected_index = _next_selectable(m_selected_index);
+                    m_selected_index = m_next_selectable(m_selected_index);
                     break;
 
                 case 'k': // vim-style up
                     [[fallthrough]];
                 case 'w':
-                    m_selected_index = _prev_selectable(m_selected_index);
+                    m_selected_index = m_prev_selectable(m_selected_index);
                     break;
 
                 case '\n': // Enter key (various terminals)
@@ -712,7 +712,7 @@ namespace terminal_utils
 
     inline void Menu::display() const
     {
-        render();
+        m_render();
     }
 
 } // namespace terminal_utils
