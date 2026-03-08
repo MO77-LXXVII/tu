@@ -269,7 +269,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         /** @brief returns the string representation of a `Mode` value */
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
-            switch (m)
+            switch(m)
             {
                 case Mode::empty_mode:  return "empty";
                 case Mode::add_mode:    return "add";
@@ -428,6 +428,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         // =========================
 
 
+        /** @brief prompt the user to add a new currency entry and save it */
         static void add_currency()
         {
             CurrencyExchange user = CurrencyExchange::make_new(get_valid_currency_code());
@@ -435,7 +436,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             terminal_utils::platform::clear_terminal();
             read_currency_info(user, "Add Currency Data:");
 
-            switch (user.save_with_result())
+            switch(user.save_with_result())
             {
                 case SaveResult::succeeded:
                     terminal_utils::platform::clear_terminal();
@@ -450,6 +451,12 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             }
         }
 
+
+        /**
+         * @brief if multiple records match, prompt the user to pick one; otherwise return the only match
+         * @param matches list of matching records
+         * @return the selected `CurrencyExchange` record
+        */
         static CurrencyExchange select_from_matches(const std::vector<CurrencyExchange>& matches)
         {
             if(matches.size() == 1) // single element
@@ -457,11 +464,15 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 
             // multiple elements
             print_currency_details(matches, true);
+
             const int choice = terminal_utils::input::get_number_in_range<int>(
                 "Choose which country: ", "Invalid option, try again: ", 1, matches.size());
+
             return matches[choice - 1];
         }
 
+
+        /** @brief prompt the user to select and update an existing currency entry */
         static void update_currency()
         {
             auto from_matches = CurrencyExchange::find_all(get_valid_currency_code());
@@ -488,16 +499,30 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             }
         }
 
+
+        /**
+         * @brief convert an amount from this currency to USD
+         * @param amount the amount to convert
+         * @return equivalent value in USD
+         */
         double to_USD(double amount) const
         {
             return amount / this->m_rate;
         }
 
+
+        /**
+         * @brief convert an amount from USD to this currency
+         * @param amount the amount in USD
+         * @return equivalent value in this currency
+         */
         double from_USD(double amount) const
         {
             return amount * this->m_rate;
         }
 
+
+        /** @brief prompt the user to convert an amount between two currencies */
         static void convert_currency()
         {
             // `get_valid_currency_code()` guarantees existence
