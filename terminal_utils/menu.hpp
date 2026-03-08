@@ -294,7 +294,6 @@ namespace terminal_utils
              */
             [[nodiscard]] int get_selectable_count() const;
 
-
         private:
             /* 
                 ======================
