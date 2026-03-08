@@ -39,7 +39,7 @@ namespace terminal_utils
             using MenuFactory = std::function<Menu(MenuNavigator&)>;
 
             /**
-             * @brief register a named `menu` via a factory function
+             * @brief register a named `menu` so the navigator knows it exists
              * @param name    unique name identifying this menu
              * @param factory function that builds and returns the `Menu`
              * @return reference to this navigator (allows chaining)
@@ -51,7 +51,7 @@ namespace terminal_utils
             }
 
             /**
-             * @brief push a named menu onto the navigation stack
+             * @brief navigate to a registered `menu` at runtime
              * 
              * The pushed `menu` becomes the active one on the next iteration of `run()`
              * 
