@@ -130,7 +130,7 @@ namespace terminal_utils::output
     {
         FormatGuard guard(os);
 
-        if (a.align == Alignment::Center)
+        if(a.align == Alignment::Center)
         {
             std::ostringstream oss;
             oss << a.value;
@@ -226,7 +226,7 @@ namespace terminal_utils::output
                 std::vector<std::string_view> row;
                 row.reserve(cells.size());
 
-                for (auto& cell : cells)
+                for(auto& cell : cells)
                 {
                     _owned_storage.emplace_back(cell);
                     row.emplace_back(_owned_storage.back());
@@ -240,7 +240,8 @@ namespace terminal_utils::output
             /**
              * @brief alias for `add_row(Table::own, cells)`: kept for backwards compatibility
              * @deprecated use `add_row(Table::own, ...)` instead
-             * */
+             *
+             */
             Table& add_row_owned(std::initializer_list<std::string_view> cells)
             {
                 add_row(own, cells);
@@ -248,62 +249,62 @@ namespace terminal_utils::output
             }
 
 
-            void print(Alignment alignment, int extra_padding = config::DEFAULT_PADDING) const
+            /**
+             * @brief prints the table with borders and alignment
+             *
+             * computes column widths automatically from cell contents, then prints
+             * a bordered table with a separator after every row including the last
+             *
+             * @param alignment        text alignment within each cell
+             * @param extra_padding    extra space added to each cell beyond its content width (default: `config::DEFAULT_PADDING`)
+             * @param null_placeholder text to display for **missing cells** default is empty string, can be a user-specified value (e.g., `"null"`/`"NULL"`)
+             *
+             * @example
+             * @code
+             * table.print(Alignment::Center);
+             * table.print(Alignment::Left, 4, "NULL");
+             * @endcode
+             */
+            void print(Alignment alignment, int extra_padding = config::DEFAULT_PADDING, const std::string_view null_placeholder = "") const
             {
-                if (_rows.empty())
+                if(_rows.empty())
                     return;
 
-                // stores each column width
+                // stores the maximum cell width for each column, used for alignment and border sizing
                 std::vector<size_t> col_widths;
 
-                // total amount of columns
-                size_t num_cols = 0;
+                int num_cols = compute_column_count();
 
-                // Find total amountof columns
-                for (const auto& row : _rows)
-                    num_cols = std::max(num_cols, row.size());
-
-                // Ensure `col_widths` has one entry per column (we got from `num_cols`)
+                // initialize all widths to 0 before computing maximums
                 col_widths.resize(num_cols, 0);
 
-                size_t total_words_count = 0;
+                compute_maximum_width_per_column(col_widths);
 
-                // Find maximum width for each column
-                for(const auto& row : _rows)
-                {
-                    for(size_t i = 0; i < row.size(); ++i)
-                        col_widths[i] = std::max(col_widths[i], row[i].length());
-                }
+                size_t total_column_width = compute_total_column_width(col_widths, num_cols);
 
-                for (size_t i = 0; i < num_cols; ++i)
-                    total_words_count += col_widths[i];
-
-                auto print_border = [total_words_count, num_cols, extra_padding]()
+                auto print_border = [total_column_width, num_cols, extra_padding]()
                 {
                     size_t border_width =
-                        total_words_count +         // actual text widths
-                        (2 * num_cols) +            // left + right padding per column (left/right padding per column)
-                        (num_cols - 1);             // inner separators between columns (all '|' characters)
+                        total_column_width + // actual text widths
+                        (2 * num_cols) +     // left + right padding per column (left/right padding per column)
+                        (num_cols - 1);      // inner separators between columns (all '|' characters)
 
-                    std::cout << "+"
-                        << std::string(border_width, '-')
-                        << "+\n";
+                    std::cout << "+" << std::string(border_width, '-') << "+\n";
                 };
 
                 // Top border
                 print_border();
 
                 // Print rows
-                for (const auto& row : _rows)
+                for(const auto& row : _rows)
                 {
-                    for (size_t i = 0; i < num_cols; ++i)  // Changed: iterate through num_cols instead of row.size()
+                    // iterate num_cols to render empty cells for short rows
+                    for(size_t i = 0; i < num_cols; ++i)
                     {
-                        // missing cells currently render as empty
-                        // - could be "null"/"NULL"
-                        constexpr std::string_view null_placeholder = "";
+                        // account for '|' we manually print on each side
+                        constexpr int border_padding = 2;
 
-                        constexpr int border_padding = 2; // account for '|' we manually print on each side
-
+                        // item to print
                         std::string_view cell = (i < row.size()) ? row[i] : null_placeholder;
 
                         std::cout << "|" << print_aligned(cell, col_widths[i] + (extra_padding - border_padding), alignment, ' ');
@@ -311,17 +312,62 @@ namespace terminal_utils::output
 
                     std::cout << "|" << std::endl;
 
-                    // rows seperator + bottom border
+                    // per row seperator + bottom border once loop ends
                     print_border();
                 }
             }
 
         private:
-            std::vector<std::vector<std::string_view>> _rows;
+            std::vector<std::vector<std::string_view>> _rows; ///< all rows stored as views into caller-managed or owned strings
 
-            // takes ownership of std::string in case user cannot guarantee the view lifetime
-            // uses std::deque as it doesn't invalidate references when growing up
+
+            /// stores `std::string`s when ownership is needed via `add_row(Table::own, ...)`
+            /// `std::deque` is used instead of `std::vector` because it does not invalidate references or pointers when growing
+            /// `std::vector` would invalidate the `std::string_view`s in `_rows` on reallocation
             std::deque<std::string> _owned_storage;
+
+
+            /**
+             * @brief returns the number of columns in the widest row
+             * @note e.g. if rows have 3, 1, 6, and 4 cells -> returns 6
+             * @return number of columns
+             */
+            int compute_column_count() const
+            {
+                size_t num_cols = 0;
+                for(const auto& row : _rows)
+                    num_cols = std::max(num_cols, row.size());
+
+                return num_cols;
+            }
+
+            /**
+             * @brief for each column index, stores the length of the longest cell into `col_widths`
+             * @note e.g. if column 0 has cells "john", "alice", "bob" -> `col_widths[0]` will be 5
+             * @param col_widths output `std::vector` to write maximum widths into, must be pre-sized to `num_cols`
+             */
+            void compute_maximum_width_per_column(std::vector<size_t>& col_widths) const
+            {
+                for(const auto& row : _rows)
+                    for(size_t i = 0; i < row.size(); ++i)
+                        col_widths[i] = std::max(col_widths[i], row[i].length());
+            }
+
+            /**
+             * @brief returns the sum of the widest cell in each column
+             * @note e.g. if columns have max widths 5, 8, 2 -> returns 15
+             * @param col_widths the per-column maximum widths
+             * @param num_cols   number of columns to sum
+             * @return total character width across all columns
+             */
+            int compute_total_column_width(const std::vector<size_t>& col_widths, int num_cols) const
+            {
+                int total_width = 0;
+                for(size_t i = 0; i < num_cols; ++i)
+                    total_width += col_widths[i];
+
+                return total_width;
+            }
     };
 } // namespace terminal_utils::output
 
