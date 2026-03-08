@@ -187,6 +187,8 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             constexpr double epsilon = 1e-6;
 
+            // `stable_sort()` preserves the relative order of records with equal rates,
+            // allowing users to rely on consistent ordering between saves
             std::stable_sort(records.begin(), records.end(), [](const CurrencyExchange& a, const CurrencyExchange& b)
             {
                 double diff = a.m_rate - b.m_rate;
