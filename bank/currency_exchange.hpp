@@ -239,10 +239,17 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             return currencies_with_same_code;
         }
 
+
         // =========================
-        // Richer save(): wraps base save() and returns SaveResult
+        // Helpers
         // =========================
-    public:
+
+
+        /**
+         * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
+         * @return `SaveResult` indicating success or the exact failure reason
+         * @see SaveResult
+         */
         SaveResult save_with_result()
         {
             if(is_empty())
@@ -259,10 +266,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         }
 
 
-        // =========================
-        // Helpers
-        // =========================
-    public:
+        /** @brief returns the string representation of a `Mode` value */
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
             switch (m)
@@ -275,6 +279,8 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             }
         }
 
+
+        /** @brief returns the ISO currency code of this record */
         std::string get_currency_code() const
         {
             return m_currency_code;
