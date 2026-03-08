@@ -394,6 +394,13 @@ namespace terminal_utils
     }
 
 
+    /* 
+        ======================================
+                UI rendering functions
+        ======================================
+    */
+
+
     /**
      * @brief renders the menu title area including subtitles and optional date
      *
@@ -560,13 +567,11 @@ namespace terminal_utils
     }
     
 
-
-
-
-
-
-
-
+    /* 
+        ======================================
+        UI navigation functions implementation
+        ======================================
+    */
 
 
     inline int Menu::_get_selectable_count() const
