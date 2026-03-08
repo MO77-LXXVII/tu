@@ -19,15 +19,15 @@ namespace terminal_utils
     /**
      * @brief Represents the result of a menu interaction.
      * 
-     * Indicates whether the user selected an item, Quit the menu,
-     * or if an error occurred during input.
+     * Indicates whether the user **selected an item**, **Quit the menu**,
+     * or if an **error occurred during input**.
      */
     enum class MenuResult
     {
         /** User **selected** a menu item. */
         Selected,
 
-        /** User **Quit** the menu (e.g., pressed 'q'). */
+        /** User **quit** the menu (e.g., pressed 'q'). */
         Quit,
 
         /** An **input error** occurred. */
@@ -638,7 +638,7 @@ else
 
     inline MenuResult Menu::run()
     {
-        if (!platform::is_terminal())
+        if(!platform::is_terminal())
             return MenuResult::Error;
 
         // Find first selectable item
@@ -646,12 +646,12 @@ else
         if(_selected_index == -1 || _selected_index >= static_cast<int>(_items.size()) || !_items[_selected_index].is_selectable())
             _selected_index = _next_selectable(-1);
 
-        if (_selected_index < 0)
+        if(_selected_index < 0)
             return MenuResult::Error; // No selectable items
 
         _is_running = true;
 
-        while (_is_running)
+        while(_is_running)
         {
             render();
 
@@ -659,7 +659,7 @@ else
 
             auto key_opt = input::get_menu_key();
 
-            if (!key_opt)
+            if(!key_opt)
             {
                 // Clear any pending input
                 input::clear_failed_input();
@@ -668,7 +668,7 @@ else
 
             char key = static_cast<char>(std::tolower(static_cast<unsigned char>(*key_opt)));
 
-            switch (key)
+            switch(key)
             {
                 case 'j':
                     [[fallthrough]];
@@ -723,7 +723,7 @@ else
     inline std::optional<std::size_t> Menu::run_once()
     {
         auto result = run();
-        if (result == MenuResult::Selected)
+        if(result == MenuResult::Selected)
             return static_cast<std::size_t>(_selected_index);
 
         return std::nullopt;
