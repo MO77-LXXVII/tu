@@ -287,18 +287,16 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         }
 
 
-
-
-
-
-
-
-
-
         // =========================
-        // UI — input
+        //    UI input methods
         // =========================
-    public:
+
+
+        /**
+         * @brief prompts the user for a currency code, loops until a valid one is entered
+         * @param msg prompt message
+         * @return a valid, uppercased ISO currency code that exists in the system
+         */
         static std::string get_valid_currency_code(std::string_view msg = "Enter currency code: ")
         {
             while(true)
@@ -317,6 +315,12 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             }
         }
 
+
+        /**
+         * @brief prompts the user to fill in all fields of a `CurrencyExchange` object
+         * @param currency the object to populate
+         * @param header   header text to display above the input form
+         */
         static void read_currency_info(CurrencyExchange& currency, std::string_view header)
         {
             std::cout << "\n\n" << header;
@@ -332,16 +336,24 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             currency.m_rate = terminal_utils::input::get_number<double>();
         }
 
+
+        /**
+         * @brief prompts the user to enter a new exchange rate for an existing currency
+         * @param currency the object whose rate will be updated
+         * @param header   header text to display above the input form
+         */
         static void read_new_currency_rate(CurrencyExchange& currency, std::string_view header)
         {
             std::cout << "\nEnter The Exchange Rate To USD: ";
             currency.m_rate = terminal_utils::input::get_number<double>();
         }
 
+
         // =========================
-        // UI — display
+        //    UI display methods
         // =========================
-    public:
+
+
         void print_currency_details(bool show_index = false, int index = 0) const
         {
             terminal_utils::output::Table table;
