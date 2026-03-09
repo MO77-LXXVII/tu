@@ -145,32 +145,41 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return BankClient(Mode::add_mode, "", "", "", "", std::move(account_number), "", 0.0);
         }
 
-    // ----------------------------------------------------------
-    // Required CRTP hooks
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //    Required CRTP hooks
+        // =========================
+
+
+        /** @brief returns the file path for client records */
         [[nodiscard]] static std::string_view file_name()
         {
             return terminal_utils::config::CLIENTS_FILE_NAME;
         }
 
-        // line format: first#//#last#//#email#//#phone#//#account#//#pin#//#balance
+
+        /**
+         * @brief deserialize a line from the file into a `BankClient` object
+         * @note line format: `first#//#last#//#email#//#phone#//#account#//#pin#//#balance`
+         */
         [[nodiscard]] static BankClient decode(const std::string& line)
         {
             auto cd = stutl::String::split(line, SEPARATOR);
 
             return BankClient(
-                Mode::update_mode,                                                   // loaded from file → ready to update
+                Mode::update_mode,                                                   // loaded from file -> ready to update
                 cd[0],                                                               // first_name
                 cd[1],                                                               // last_name
                 cd[2],                                                               // email
                 cd[3],                                                               // phone
                 cd[4],                                                               // account_number
-                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT), // pin (decrypted)
+                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT),    // pin (decrypted)
                 std::stod(cd[6])                                                     // balance
             );
         }
 
+
+        /** @brief serialize this object into a file line, encrypting the PIN */
         [[nodiscard]] std::string encode() const
         {
             return m_first_name                                                            + std::string(SEPARATOR)
@@ -182,16 +191,25 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                  + std::to_string(m_account_balance);
         }
 
+
+        /** @brief returns the account number as the unique key */
         [[nodiscard]] std::string key() const
         {
             return m_account_number;
         }
 
+
+        /** @brief returns `true` if this record's account number matches `k` */
         [[nodiscard]] bool matches_key(const std::string& k) const
         {
             return m_account_number == k;
         }
 
+
+        /**
+         * @brief sort records by account number ascending
+         * @param records the records to sort in place
+         */
         static void sort(std::vector<BankClient>& records)
         {
             // `stable_sort()` preserves the relative order of records with equal rates,
@@ -201,6 +219,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 return a.m_account_number < b.m_account_number;
             });
         }
+
+
 
     // ----------------------------------------------------------
     // find() overload: by account + pin (for ATM login)
