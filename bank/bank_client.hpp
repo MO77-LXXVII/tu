@@ -43,7 +43,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
          * 
          * - `succeeded`              record was saved successfully
          * - `failed_empty_object`    attempted to save an empty record
-         * - `failed_account_exists`  account number already exists (add mode only)
+         * - `failed_account_exists`  account number already exists(add mode only)
          * - `failed_cannot_update`   underlying I/O failure
          */
         enum class SaveResult
@@ -118,9 +118,9 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                    double         account_balance)
             : PersistentEntity(mode)
             , Person(std::move(first_name), std::move(last_name), std::move(email), std::move(phone_num))
-            , m_account_number  (std::move(account_number))
-            , m_pin_code        (std::move(pin_code))
-            , m_account_balance (account_balance)
+            , m_account_number (std::move(account_number))
+            , m_pin_code       (std::move(pin_code))
+            , m_account_balance(account_balance)
         {}
 
 
@@ -173,7 +173,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 cd[2],                                                               // email
                 cd[3],                                                               // phone
                 cd[4],                                                               // account_number
-                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT),    // pin (decrypted)
+                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT),    // pin(decrypted)
                 std::stod(cd[6])                                                     // balance
             );
         }
@@ -221,50 +221,58 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
 
+        // =========================
+        //         find()
+        // =========================
 
-    // ----------------------------------------------------------
-    // find() overload: by account + pin (for ATM login)
-    // The base find(key) covers the account-number-only case.
-    // ----------------------------------------------------------
-    public:
 
+        /**
+         * @brief find a client by account number
+         * @param account_number the account number to search for
+         * @return the matching client, or `std::nullopt` if not found
+         */
         [[nodiscard]] static std::optional<BankClient> find(const std::string& account_number)
         {
-            for (auto& c : load_all())
-                if (c.m_account_number == account_number)
+            for(auto& c : load_all())
+                if(c.m_account_number == account_number)
                     return c;
 
             return std::nullopt;
         }
 
+
+        /**
+         * @brief find a client by account number and PIN; used for ATM authentication
+         * @param account_number the account number to search for
+         * @param pin_code       the PIN to match
+         * @return the matching client, or `std::nullopt` if credentials do not match
+         */
         [[nodiscard]] static std::optional<BankClient> find(const std::string& account_number, const std::string& pin_code)
         {
-            for (auto& c : load_all())
-                if (c.m_account_number == account_number && c.m_pin_code == pin_code)
+            for(auto& c : load_all())
+                if(c.m_account_number == account_number && c.m_pin_code == pin_code)
                     return c;
 
             return std::nullopt;
         }
 
-    // ----------------------------------------------------------
-    // Richer save(): wraps base save() and returns SaveResult
-    // ----------------------------------------------------------
-    public:
-        /*
-            Mode acts as a state machine / strategy selector:
-              empty_mode  → nothing to do
-              add_mode    → guard duplicate, then append
-              update_mode → replace existing record
-              delete_mode → erase record
 
-            This mirrors the Active Record / Unit-of-Work patterns.
-        */
+        // =========================
+        //         Helpers
+        // =========================
+
+
+        /**
+         * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
+         * @return `SaveResult` indicating success or the exact failure reason
+         * @see SaveResult
+         */
         SaveResult save_with_result()
         {
-            if (is_empty())
+            if(is_empty())
                 return SaveResult::failed_empty_object;
 
-            if (_mode == Mode::add_mode && BankClient::exists(m_account_number))
+            if(_mode == Mode::add_mode && BankClient::exists(m_account_number))
                 return SaveResult::failed_account_exists;
 
             // Delegate to PersistentEntity::save() for the actual I/O
@@ -274,14 +282,20 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return SaveResult::succeeded;
         }
 
-    // ----------------------------------------------------------
-    // Business logic
-    // ----------------------------------------------------------
-    public:
 
+        // =========================
+        //     Business logic
+        // =========================
+
+
+        /**
+         * @brief deposit an amount into this account
+         * @param amount the amount to deposit (must be positive and within balance cap)
+         * @return `true` on success, `false` if amount is invalid or save fails
+         */
         bool deposit(double amount)
         {
-            if (amount <= 0 || amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - m_account_balance)
+            if(amount <= 0 || amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - m_account_balance)
                 return false;
 
             m_account_balance += amount;
@@ -289,9 +303,15 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return save_with_result() == SaveResult::succeeded;
         }
 
+
+        /**
+         * @brief withdraw an amount from this account
+         * @param amount the amount to withdraw (must be positive and not exceed balance)
+         * @return `true` on success, `false` if amount is invalid or save fails
+         */
         bool withdraw(double amount)
         {
-            if (amount <= 0 || amount > m_account_balance)
+            if(amount <= 0 || amount > m_account_balance)
                 return false;
 
             m_account_balance -= amount;
@@ -299,20 +319,28 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return save_with_result() == SaveResult::succeeded;
         }
 
+
+        /**
+         * @brief transfer an amount from this account to a destination account
+         * @param amount      the amount to transfer
+         * @param destination the recipient client
+         * @return `TransferResult` indicating success or the exact failure reason
+         * @note if deposit to destination fails, attempts to roll back the withdrawal
+         */
         TransferResult transfer(double amount, BankClient& destination)
         {
-            if (destination.m_account_balance + amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
+            if(destination.m_account_balance + amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
                 return TransferResult::recipient_cap_exceeded;
 
-            if (!withdraw(amount))
+            if(!withdraw(amount))
                 return TransferResult::save_failed;
 
-            if (!destination.deposit(amount))
+            if(!destination.deposit(amount))
             {
                 // Attempt rollback
-                if (!deposit(amount))
+                if(!deposit(amount))
                 {
-                    const std::string message = "CRITICAL: Transfer rollback failed for client ("
+                    const std::string message = "CRITICAL: Transfer rollback failed for client("
                                                 + full_name()
                                                 + "), Amount: "
                                                 + std::to_string(amount);
@@ -333,7 +361,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
-            switch (m)
+            switch(m)
             {
                 case Mode::empty_mode:  return "empty";
                 case Mode::add_mode:    return "add";
@@ -348,12 +376,12 @@ class BankClient : public PersistentEntity<BankClient>, public Person
     // ----------------------------------------------------------
     public:
 
-        // Prompt for a unique (non-existing) account number
+        // Prompt for a unique(non-existing) account number
         static std::string get_unique_account_num()
         {
             std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
 
-            while (BankClient::exists(account_num))
+            while(BankClient::exists(account_num))
             {
                 std::cout << "\nAccount number already in use, choose another.\n";
                 account_num = terminal_utils::input::get_string("Enter client account number: ", "");
@@ -367,7 +395,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         {
             std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
 
-            while (!BankClient::exists(account_num))
+            while(!BankClient::exists(account_num))
             {
                 std::cout << "\nNot a valid account number.\n";
                 account_num = terminal_utils::input::get_string("Enter client account number: ", "");
@@ -418,7 +446,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         {
             auto clients = load_all();
 
-            if (clients.empty())
+            if(clients.empty())
             {
                 std::cout << "No clients in the system.\n";
                 return;
@@ -427,13 +455,13 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             terminal_utils::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "account_number", "pin_code", "account_balance", "mode"});
 
-            for (const BankClient& c : clients)
+            for(const BankClient& c : clients)
                 table.add_row_owned({c.m_first_name, c.m_last_name, c.m_email, c.m_phone_num,
                                      c.m_account_number, c.m_pin_code,
                                      std::to_string(c.m_account_balance),
                                      std::string(mode_name(c._mode))});
 
-            const std::string label = "List of (" + std::to_string(clients.size()) + ") Client(s):";
+            const std::string label = "List of(" + std::to_string(clients.size()) + ") Client(s):";
             constexpr size_t  PADDING = 4;
             std::cout << terminal_utils::output::print_aligned(label, label.size() + PADDING,
                                                                terminal_utils::output::Alignment::Right) << "\n";
@@ -452,7 +480,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             terminal_utils::platform::clear_terminal();
             read_client_info(client, "Add Client Info:");
 
-            switch (client.save_with_result())
+            switch(client.save_with_result())
             {
                 case SaveResult::succeeded:
                     terminal_utils::platform::clear_terminal();
@@ -470,7 +498,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         static void update_client()
         {
             auto opt = BankClient::find(get_valid_account_num());
-            if (!opt) return;
+            if(!opt) return;
 
             BankClient client = *opt;
 
@@ -480,7 +508,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             client.set_mode(Mode::update_mode);
 
-            switch (client.save_with_result())
+            switch(client.save_with_result())
             {
                 case SaveResult::succeeded:
                     terminal_utils::platform::clear_terminal();
@@ -508,7 +536,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             terminal_utils::platform::clear_terminal();
             client.print_client_details();
 
-            if (!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this client? (y/n):"))
+            if(!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this client?(y/n):"))
             {
                 std::cout << "\nDelete operation canceled.\n";
                 return;
@@ -518,7 +546,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             client.save();
 
             terminal_utils::platform::clear_terminal();
-            std::cout << "Account (" << account_num << ") deleted successfully.\n";
+            std::cout << "Account(" << account_num << ") deleted successfully.\n";
         }
 
     // ----------------------------------------------------------
@@ -529,7 +557,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         static void ui_deposit()
         {
             auto opt = BankClient::find(get_valid_account_num());
-            if (!opt) return;
+            if(!opt) return;
 
             BankClient client = *opt;
 
@@ -544,14 +572,14 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             std::cout << "New balance will be: " << client.m_account_balance + amount << "\n";
 
-            if (!terminal_utils::input::get_yes_no("Confirm? "))
+            if(!terminal_utils::input::get_yes_no("Confirm? "))
             {
                 std::cout << "Operation aborted.\n";
                 return;
             }
 
             terminal_utils::platform::clear_terminal();
-            if (client.deposit(amount))
+            if(client.deposit(amount))
             {
                 std::cout << "Deposit successful.\n";
                 client.print_client_details();
@@ -563,7 +591,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         static void ui_withdraw()
         {
             auto opt = BankClient::find(get_valid_account_num());
-            if (!opt) return;
+            if(!opt) return;
 
             BankClient client = *opt;
 
@@ -578,14 +606,14 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             std::cout << "New balance will be: " << client.m_account_balance - amount << "\n";
 
-            if (!terminal_utils::input::get_yes_no("Confirm? "))
+            if(!terminal_utils::input::get_yes_no("Confirm? "))
             {
                 std::cout << "Operation aborted.\n";
                 return;
             }
 
             terminal_utils::platform::clear_terminal();
-            if (client.withdraw(amount))
+            if(client.withdraw(amount))
             {
                 std::cout << "Withdrawal successful.\n";
                 client.print_client_details();
@@ -598,16 +626,16 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         {
             std::cout << "From account:\n";
             auto from_opt = BankClient::find(get_valid_account_num());
-            if (!from_opt) return;
+            if(!from_opt) return;
 
             std::cout << "To account:\n";
             auto to_opt = BankClient::find(get_valid_account_num());
-            if (!to_opt) return;
+            if(!to_opt) return;
 
             BankClient from = *from_opt;
             BankClient to   = *to_opt;
 
-            if (from.m_account_number == to.m_account_number)
+            if(from.m_account_number == to.m_account_number)
             {
                 std::cout << underline(terminal_utils::red(terminal_utils::bold("Can't transfer to the same account.\n")));
                 return;
@@ -628,7 +656,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             std::cout << "(" << to.full_name() << ") new balance: "
                       << terminal_utils::green(std::to_string(to.m_account_balance + amount)) << "\n";
 
-            if (!terminal_utils::input::get_yes_no("Confirm transfer? (y/n)"))
+            if(!terminal_utils::input::get_yes_no("Confirm transfer?(y/n)"))
             {
                 std::cout << "Transfer canceled.\n";
                 return;
@@ -636,7 +664,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             terminal_utils::platform::clear_terminal();
 
-            switch (from.transfer(amount, to))
+            switch(from.transfer(amount, to))
             {
                 case TransferResult::success:
                     std::cout << terminal_utils::green("Transfer successful.\n");
