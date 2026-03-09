@@ -225,21 +225,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         //         find()
         // =========================
 
-
-        /**
-         * @brief find a client by account number
-         * @param account_number the account number to search for
-         * @return the matching client, or `std::nullopt` if not found
-         */
-        [[nodiscard]] static std::optional<BankClient> find(const std::string& account_number)
-        {
-            for(const auto& c : load_all())
-                if(c.m_account_number == account_number)
-                    return c;
-
-            return std::nullopt;
-        }
-
+        using PersistentEntity<BankClient>::find;
 
         /**
          * @brief find a client by account number and PIN; used for ATM authentication

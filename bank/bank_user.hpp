@@ -289,21 +289,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         //         find()
         // =========================
 
-
-        /**
-         * @brief find a user by username
-         * @param username the username to search for
-         * @return the matching user, or `std::nullopt` if not found
-         */
-        [[nodiscard]] static std::optional<BankUser> find(const std::string& username)
-        {
-            for(const auto& u : load_all())
-                if(u.m_username == username)
-                    return u;
-
-            return std::nullopt;
-        }
-
+        using PersistentEntity<BankUser>::find;
 
         /**
          * @brief find a user by username and password; used for login authentication

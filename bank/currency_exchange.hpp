@@ -208,20 +208,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         //         find()
         // =========================
 
-        /**
-         * @brief find a single currency by code
-         * @param currency_code ISO currency code to search for
-         * @return the first matching record, or `std::nullopt` if not found
-         */
-        [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
-        {
-            for(const auto& u : load_all())
-                if(u.m_currency_code == currency_code)
-                    return u;
-
-            return std::nullopt;
-        }
-
+        using PersistentEntity<CurrencyExchange>::find;
 
         /**
          * @brief find all currencies sharing the same code (multiple countries can share a code)
