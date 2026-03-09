@@ -9,6 +9,7 @@
 #include <optional>
 #include <string_view>
 
+#include "../terminal_utils/logger.hpp"
 
 
 
@@ -20,14 +21,19 @@ class FileCache
         [[nodiscard]] static std::vector<Derived> load()
         {
             if (s_cache.has_value())
+            {
+                LOG_INFO("Cached data used");
                 return *s_cache;
+            }
 
+            LOG_INFO("Caching new file data");
             return m_populate();
         }
 
 
         static void invalidate() noexcept
         {
+            LOG_INFO("Cache no longer valid");
             s_cache.reset(); // std::optional calls std::vector ~destructor()
         }
 
