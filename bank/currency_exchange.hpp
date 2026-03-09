@@ -37,7 +37,6 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 {
     public:
 
-
         // ignore IntelliSense scoping issue 
         // it gets confused about the scope of nested enums inside CRTP templates
         /**

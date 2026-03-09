@@ -93,7 +93,7 @@ inline constexpr Permission& operator&=(Permission& a, Permission b)
  * @brief checks if `user` has at least one bit of `required` set
  * @param user     the user's permission bitmask
  * @param required the permission(s) to check for
- * @return `true` **if any bit** in `required` is set in `user`
+ * @return `true` if any bit in `required` is set in `user`
  */
 inline constexpr bool has_permission(Permission user, Permission required)
 {
@@ -120,10 +120,16 @@ inline constexpr bool has_permission(Permission user, Permission required)
  */
 class BankUser : public PersistentEntity<BankUser>, public Person
 {
-    // ----------------------------------------------------------
-    // Types
-    // ----------------------------------------------------------
     public:
+
+        /**
+         * @brief return type for `save_with_result()`; indicates success or the exact failure reason
+         * 
+         * - `succeeded`              record was saved successfully
+         * - `failed_empty_object`    attempted to save an empty record
+         * - `failed_username_exists` username already exists (add mode only)
+         * - `failed_cannot_update`   underlying I/O failure
+         */
         enum class SaveResult
         {
             succeeded,
@@ -132,25 +138,39 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             failed_cannot_update
         };
 
-    // ----------------------------------------------------------
-    // Data
-    // ----------------------------------------------------------
-    protected:
-        std::string m_username;
-        std::string m_password;
-        Permission  m_permissions = Permission::None;
+        // =========================
+        //         Data
+        // =========================
 
-    // ----------------------------------------------------------
-    // Constructors
-    // ----------------------------------------------------------
+    protected:
+        std::string m_username;                          ///< unique login identifier
+        std::string m_password;                          ///< password for authentication
+        Permission  m_permissions = Permission::None;    ///< bitmask of granted permissions
+
+
     public:
-        // Empty sentinel: returned when a lookup finds nothing
+        // =========================
+        //     Constructors
+        // =========================
+
+        /** @brief default constructor: creates an empty sentinel with `Mode::empty_mode` */
         BankUser()
             : PersistentEntity(Mode::empty_mode)
             , Person("", "", "", "")
         {}
 
-        // Full constructor used everywhere (UI, decode, factory helpers)
+
+        /**
+         * @brief full constructor used by the UI, `decode()`, and factory helpers
+         * @param mode        persistence mode
+         * @param first_name  first name
+         * @param last_name   last name
+         * @param email       email address
+         * @param phone_num   phone number
+         * @param username    unique login identifier
+         * @param password    password for authentication
+         * @param permissions bitmask of granted permissions
+         */
         BankUser(Mode        mode,
                  std::string first_name,
                  std::string last_name,
@@ -166,48 +186,64 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             , m_permissions (static_cast<Permission>(permissions))
         {}
 
-    // ----------------------------------------------------------
-    // Factory helpers
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //     Factory helpers
+        // =========================
+
+
+        /** @brief creates an empty sentinel object equivalent to default construction */
         static BankUser make_empty()
         {
             return BankUser{};
         }
 
-        // Creates a shell in add_mode with only a username set;
-        // caller fills in the rest via read_user_info()
+
+        /**
+         * @brief creates a shell in `add_mode` with only the username set
+         * @param username unique login identifier for the new user
+         * @note caller fills in the remaining fields via `read_user_info()`
+         */
         static BankUser make_new(std::string username)
         {
             return BankUser(Mode::add_mode, "", "", "", "", std::move(username), "", 0);
         }
 
-    // ----------------------------------------------------------
-    // Required CRTP hooks
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //    Required CRTP hooks
+        // =========================
+
+
+        /** @brief returns the file path for user records */
         [[nodiscard]] static std::string_view file_name()
         {
             return terminal_utils::config::USERS_FILE_NAME;
         }
 
-        // line format: first#//#last#//#email#//#phone#//#username#//#password#//#permissions
+
+        /**
+         * @brief deserialize a line from the file into a `BankUser` object
+         * @note line format: `first#//#last#//#email#//#phone#//#username#//#password#//#permissions`
+         */
         [[nodiscard]] static BankUser decode(const std::string& line)
         {
             auto ud = stutl::String::split(line, SEPARATOR);
 
             return BankUser(
-                Mode::update_mode,                                                      // loaded from file → ready to update
+                Mode::update_mode,                                                      // loaded from file -> ready to update
                 ud[0],                                                                  // first_name
                 ud[1],                                                                  // last_name
                 ud[2],                                                                  // email
                 ud[3],                                                                  // phone
                 ud[4],                                                                  // username
-                utils::decrypt_text(ud[5], terminal_utils::config::CIPHER_SHIFT),    // password (decrypted)
-                static_cast<uint32_t>(std::stoi(ud[6]))                                // permissions
+                utils::decrypt_text(ud[5], terminal_utils::config::CIPHER_SHIFT),       // password (decrypted)
+                static_cast<uint32_t>(std::stoi(ud[6]))                                 // permissions
             );
         }
 
+
+        /** @brief serialize this object into a file line, encrypting the password */
         [[nodiscard]] std::string encode() const
         {
             return m_first_name                                                            + std::string(SEPARATOR)
@@ -215,23 +251,32 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                  + m_email                                                                 + std::string(SEPARATOR)
                  + m_phone_num                                                             + std::string(SEPARATOR)
                  + m_username                                                              + std::string(SEPARATOR)
-                //  + utils::encrypt_text(m_password, terminal_utils::config::ENCRYPTION_KEY) + std::string(SEPARATOR)
+                 + utils::encrypt_text(m_password, terminal_utils::config::CIPHER_SHIFT)   + std::string(SEPARATOR)
                  + std::to_string(static_cast<uint32_t>(m_permissions));
         }
 
+
+        /** @brief returns the username as the unique key */
         [[nodiscard]] std::string key() const
         {
             return m_username;
         }
 
+
+        /** @brief returns `true` if this record's username matches `k` */
         [[nodiscard]] bool matches_key(const std::string& k) const
         {
             return m_username == k;
         }
 
+
+        /**
+         * @brief sort records by permission level ascending
+         * @param records the records to sort in place
+         */
         static void sort(std::vector<BankUser>& records)
         {
-            // `stable_sort()` preserves the relative order of records with equal rates,
+            // `stable_sort()` preserves the relative order of records with equal permissions,
             // allowing users to rely on consistent ordering between saves
             std::stable_sort(records.begin(), records.end(), [](const BankUser& a, const BankUser& b)
             {
@@ -239,11 +284,17 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             });
         }
 
-    // ----------------------------------------------------------
-    // find() overload — by username + password (for login)
-    // The base find(key) covers the username-only case.
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //         find()
+        // =========================
+
+
+        /**
+         * @brief find a user by username
+         * @param username the username to search for
+         * @return the matching user, or `std::nullopt` if not found
+         */
         [[nodiscard]] static std::optional<BankUser> find(const std::string& username)
         {
             for (auto& u : load_all())
@@ -253,6 +304,13 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return std::nullopt;
         }
 
+
+        /**
+         * @brief find a user by username and password; used for login authentication
+         * @param username the username to search for
+         * @param password the password to match
+         * @return the matching user, or `std::nullopt` if credentials do not match
+         */
         [[nodiscard]] static std::optional<BankUser> find(const std::string& username,
                                                           const std::string& password)
         {
@@ -263,10 +321,17 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return std::nullopt;
         }
 
-    // ----------------------------------------------------------
-    // Richer save() — wraps base save() and returns SaveResult
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //         Helpers
+        // =========================
+
+
+        /**
+         * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
+         * @return `SaveResult` indicating success or the exact failure reason
+         * @see SaveResult
+         */
         SaveResult save_with_result()
         {
             if(is_empty())
@@ -282,20 +347,37 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return SaveResult::succeeded;
         }
 
-    // ----------------------------------------------------------
-    // Permission helpers
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //   Helpers for Permission
+        // =========================
+
+
+        /**
+         * @brief grants an additional permission to this user
+         * @param p the permission to add
+         */
         inline constexpr void add_permission(Permission p)
         {
             m_permissions |= p;
         }
 
+
+        /**
+         * @brief returns the user's current permission bitmask
+         * @return the combined `Permission` value
+         */
         [[nodiscard]] Permission get_permissions() const noexcept
         {
             return m_permissions;
         }
 
+
+        /**
+         * @brief returns the display name for a single permission value
+         * @param p a single (non-combined) `Permission` value
+         * @return a human-readable string view, or `""` for unknown values
+         */
         [[nodiscard]] static constexpr std::string_view get_permission_name(Permission p)
         {
             switch (p)
@@ -318,6 +400,12 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             }
         }
 
+
+        /**
+         * @brief formats a permission bitmask as a pipe-separated string
+         * @param p the combined `Permission` value to format
+         * @return e.g. `"Show Clients | Add Client | Deposit"`, or `"None"` if empty
+         */
         static std::string permissions_to_string(Permission p)
         {
             constexpr Permission all_permissions[] =
@@ -343,11 +431,18 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return result.empty() ? "None" : result;
         }
 
+
+        /** @brief formats this user's permissions as a pipe-separated string */
         std::string permissions_to_string() const
         {
             return permissions_to_string(m_permissions);
         }
 
+
+        /**
+         * @brief interactively prompts to grant or deny each permission
+         * @return the resulting `Permission` bitmask after all prompts
+         */
         static Permission set_user_permission()
         {
             Permission granted = Permission::None;
@@ -376,10 +471,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return granted;
         }
 
-    // ----------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------
-    public:
+
+        /** @brief returns the string representation of a `Mode` value */
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
             switch (m)
@@ -392,15 +485,27 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             }
         }
 
+
+        /** @brief returns the username of this user */
         std::string get_username() const
         {
             return m_username;
         }
 
-    // ----------------------------------------------------------
-    // Login / Logout
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        // Business logic (Login / Logout)
+        // =========================
+
+
+        /**
+         * @brief interactively prompts for credentials and authenticates this user
+         * 
+         * allows up to 3 attempts before locking out and returning `false`.
+         * on success, populates `*this` with the matching record from disk.
+         * 
+         * @return `true` on successful login, `false` after too many failed attempts
+         */
         bool login()
         {
             terminal_utils::platform::clear_terminal();
@@ -436,15 +541,20 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             }
         }
 
+
+        /** @brief resets this object to the empty sentinel, effectively logging out */
         void logout()
         {
             *this = BankUser{};
         }
 
-    // ----------------------------------------------------------
-    // UI — input
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //           UI
+        // =========================
+
+
+        /** @brief prompts for a unique (non-existing) username */
         static std::string get_unique_username()
         {
             std::string username = terminal_utils::input::get_string("Enter user username: ", "");
@@ -458,6 +568,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return username;
         }
 
+
+        /** @brief prompts for an existing username, loops until valid */
         static std::string get_valid_username()
         {
             std::string username = terminal_utils::input::get_string("Enter username: ", "");
@@ -471,6 +583,12 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             return username;
         }
 
+
+        /**
+         * @brief prompts the user to fill in all fields of a `BankUser` object
+         * @param user   the object to populate
+         * @param header header text to display above the input form
+         */
         static void read_user_info(BankUser& user, std::string_view header)
         {
             std::cout << "\n\n" << header;
@@ -495,10 +613,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             user.m_permissions = set_user_permission();
         }
 
-    // ----------------------------------------------------------
-    // UI — display
-    // ----------------------------------------------------------
-    public:
+
+        /** @brief print this user's details as a formatted table */
         void print_user_details() const
         {
             terminal_utils::output::Table table;
@@ -508,6 +624,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             table.print(terminal_utils::output::Alignment::Center);
         }
 
+
+        /** @brief print all users in the system, or a message if none exist */
         static void list_users()
         {
             auto users = load_all();
@@ -534,10 +652,13 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             table.print(terminal_utils::output::Alignment::Center);
         }
 
-    // ----------------------------------------------------------
-    // UI — CRUD actions
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //     UI: CRUD actions
+        // =========================
+
+
+        /** @brief prompt the user to add a new user and save it */
         static void add_user()
         {
             BankUser user = BankUser::make_new(get_unique_username());
@@ -560,6 +681,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             }
         }
 
+
+        /** @brief prompt the user to find and update an existing user */
         static void update_user()
         {
             auto opt = BankUser::find(get_valid_username());
@@ -588,6 +711,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             }
         }
 
+
+        /** @brief prompt the user to find and delete an existing user */
         static void delete_user()
         {
             std::string username = get_valid_username();
