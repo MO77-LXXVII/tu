@@ -26,6 +26,12 @@ class FileCache
         }
 
 
+        static void invalidate() noexcept
+        {
+            s_cache.reset(); // std::optional calls std::vector ~destructor()
+        }
+
+
     private:
         // will carry Derived file data
         inline static std::optional<std::vector<Derived>> s_cache;

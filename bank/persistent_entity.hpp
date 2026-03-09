@@ -216,6 +216,9 @@ class PersistentEntity
         {
             Derived::sort(records);
 
+            // cache will be invalid after editing the file
+            FileCache<Derived>::invalidate();
+
             std::ofstream file(Derived::file_name().data(), std::ios::trunc);
 
             if(!file.is_open())
