@@ -55,6 +55,22 @@ inline auto for_user(const bank::BankUser& user)
     };
 }
 
+
+void print_color_options()
+{
+    std::cout << "\n";
+    std::cout << "1. > Reset\n";
+    std::cout << "2. " << tu::black  ("> Black")   << "\n";
+    std::cout << "3. " << tu::red    ("> Red")     << "\n";
+    std::cout << "4. " << tu::green  ("> Green")   << "\n";
+    std::cout << "5. " << tu::yellow ("> Yellow")  << "\n";
+    std::cout << "6. " << tu::blue   ("> Blue")    << "\n";
+    std::cout << "7. " << tu::magenta("> Magenta") << "\n";
+    std::cout << "8. " << tu::cyan   ("> Cyan")    << "\n";
+    std::cout << "9. " << tu::white  ("> White")   << "\n\n";
+}
+
+
 void run_bank()
 {
     bank::BankUser bank_user{};
@@ -231,6 +247,11 @@ void run_bank()
     {
         return tu::Menu::create("Settings")
             .add_item("Language", nullptr, [&]{ return false; }) // in case i ever touch locale.h or tinker with UTF-8 + yet another YAGNI :P
+            .add_item("Change Highlight Color", [&]
+            {
+                print_color_options();
+                tu::Menu::set_highlight_color_global(tu::ColoredText::get_color());
+            })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
