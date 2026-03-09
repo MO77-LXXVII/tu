@@ -87,8 +87,8 @@ void run_bank()
                         .set_width(40)
                         .set_date()
                         .add_global_subtitle("Logged in as: " + USERNAME)
-                        .add_item("Manage Clients", [&]{ n.push("clients");      }, perm(bank::Permission::Deposit))
-                        .add_item("Manage Users",   [&]{ n.push("users");        }, perm(bank::Permission::Withdraw))
+                        .add_item("Manage Clients", [&]{ n.push("clients");      }, perm(bank::Permission::ManageUsers))
+                        .add_item("Manage Users",   [&]{ n.push("users");        }, perm(bank::Permission::ManageClients))
                         .add_item("Transactions",   [&]{ n.push("transactions"); })
                         .add_item("Currency",       [&]{ n.push("currency");     })
                         .add_item("Settings",       [&]{ n.push("settings");     })
@@ -183,10 +183,7 @@ void run_bank()
     {
         return tu::Menu::create("Transactions")
             .add_item("Transfer", [&]{ n.push("transfer"); })
-            .add_item("History", [&]
-            {
-                std::cout << tu::yellow("\nNo history yet\n");
-            })
+            .add_item("History", nullptr, [&]{ return false; })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
@@ -206,8 +203,9 @@ void run_bank()
     nav.add("transfer_internal", [&](tu::MenuNavigator& n)
     {
         return tu::Menu::create("To Internal Account")
-            .add_item("Transfer", [&]
+            .add_item("Transfer", [&] 
             {
+                // move money from account to another
                 bank::BankClient::ui_transfer();
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Transfer))
