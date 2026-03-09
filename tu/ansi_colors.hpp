@@ -10,6 +10,7 @@
 #include "../platform/platform.hpp"
 #include "config.hpp"
 #include "output.hpp"
+#include "input.hpp"
 
 namespace tu
 {
@@ -182,10 +183,49 @@ namespace tu
             }
 
 
+            [[nodiscard]] static Color get_color()
+            {
+                int user_choice = tu::input::get_number_in_range<int>("choose an option between (1 - 9)", "Error: enter a number between (1 - 9)", 1, 9);
+
+                switch(user_choice)
+                {
+                    case 1:
+                        return Color::ResetColor; // resets color
+
+                    case 2:
+                        return Color::Black;
+
+                    case 3:
+                        return Color::Red;
+
+                    case 4:
+                        return Color::Green;
+
+                    case 5:
+                        return Color::Yellow;
+
+                    case 6:
+                        return Color::Blue;
+
+                    case 7:
+                        return Color::Magenta;
+
+                    case 8:
+                        return Color::Cyan;
+
+                    case 9:
+                        return Color::White;
+
+                    default: // unreachable as all enum values are handled above (suppressing compiler warnings)
+                        return Color::Cyan;
+                }
+            }
+
         private:
             std::string _text;                ///< The actual text content to display
             Color _color   = Color::None;  ///< Current text color (default: no color)
             Style _style     = Style::None;   ///< Current text style flags (default: no styles)
+
 
             /**
              * @brief returns the ANSI escape sequence string corresponding to a Color enum
