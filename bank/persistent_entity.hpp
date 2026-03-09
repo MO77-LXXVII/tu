@@ -145,9 +145,9 @@ class PersistentEntity
         {
             switch (_mode)
             {
-                case Mode::add_mode:    return _add();
-                case Mode::update_mode: return _update();
-                case Mode::delete_mode: return _remove();
+                case Mode::add_mode:    return m_add();
+                case Mode::update_mode: return m_update();
+                case Mode::delete_mode: return m_remove();
                 case Mode::empty_mode:  return true;
             }
             return false;
@@ -212,9 +212,10 @@ class PersistentEntity
         /**
          * @brief   sort and write all records to the entity's file, overwriting existing content
          * @param   records the records to write
-         * @return `true` on success, `false` if the file cannot be opened or a write fails
+         * @return  `true` on success, `false` if the file cannot be opened or a write fails
+         * @note    non-const: Derived::sort() mutates records before writing
          */
-        static bool _write_all(std::vector<Derived>& records)
+        static bool m_write_all(std::vector<Derived>& records)
         {
             Derived::sort(records);
 
@@ -238,18 +239,18 @@ class PersistentEntity
 
 
         /** @brief append this record to the file */
-        bool _add()
+        bool m_add()
         {
             auto records = load_all();
 
             records.push_back(self());
 
-            return _write_all(records);
+            return m_write_all(records);
         }
 
 
         /** @brief overwrite the matching record in the file with this object's current state */
-        bool _update()
+        bool m_update()
         {
             auto records = load_all();
 
@@ -261,12 +262,12 @@ class PersistentEntity
                     break;
                 }
 
-            return _write_all(records);
+            return m_write_all(records);
         }
 
 
         /** @brief remove the matching record from the file */
-        bool _remove()
+        bool m_remove()
         {
             auto records = load_all();
 
@@ -278,7 +279,7 @@ class PersistentEntity
                 records.end()
             );
 
-            return _write_all(records);
+            return m_write_all(records);
         }
 };
 
