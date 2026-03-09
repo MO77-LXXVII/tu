@@ -21,41 +21,53 @@ namespace bank
     /**
      * @brief bitmask enum representing individual user permissions
      * 
+     * @attention
+     * Read as: has permision to `...`
+     * 
      * each value is a distinct bit, allowing combinations via bitwise OR.
      * use `has_permission()` to test if a permission is granted.
      * 
-     * @note max combined value is 8191 (all 13 bits set)
      */
     enum class Permission : uint32_t
     {
         None            = 0,
-        ShowClients     = 1 << 0,
-        AddClient       = 1 << 1,
-        UpdateClient    = 1 << 2,
-        DeleteClient    = 1 << 3,
-        FindClient      = 1 << 4,
-        ShowUsers       = 1 << 5,
-        AddUser         = 1 << 6,
-        UpdateUser      = 1 << 7,
-        DeleteUser      = 1 << 8,
-        FindUser        = 1 << 9,
-        Deposit         = 1 << 10,
-        Withdraw        = 1 << 11,
-        Transfer        = 1 << 12,
+
+        // -- Clients --
+        ManageClients   = 1 << 0,
+        ShowClients     = 1 << 1,
+        AddClient       = 1 << 2,
+        UpdateClient    = 1 << 3,
+        DeleteClient    = 1 << 4,
+        FindClient      = 1 << 5,
+
+        // -- Users --
+        ManageUsers     = 1 << 6,
+        ShowUsers       = 1 << 7,
+        AddUser         = 1 << 8,
+        UpdateUser      = 1 << 9,
+        DeleteUser      = 1 << 10,
+        FindUser        = 1 << 11,
+
+        // -- Transactions --
+        Deposit         = 1 << 12,
+        Withdraw        = 1 << 13,
+        Transfer        = 1 << 14,
 
         All =
-            ShowClients  |
-            AddClient    |
-            UpdateClient |
-            DeleteClient |
-            FindClient   |
-            ShowUsers    |
-            AddUser      |
-            UpdateUser   |
-            DeleteUser   |
-            FindUser     |
-            Deposit      |
-            Withdraw     |
+            ManageClients |
+            ShowClients   |
+            AddClient     |
+            UpdateClient  |
+            DeleteClient  |
+            FindClient    |
+            ManageUsers   |
+            ShowUsers     |
+            AddUser       |
+            UpdateUser    |
+            DeleteUser    |
+            FindUser      |
+            Deposit       |
+            Withdraw      |
             Transfer
     };
 
