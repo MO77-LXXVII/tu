@@ -83,7 +83,8 @@ void run_bank()
 
     auto perm = for_user(bank_user);
 
-    tu::MenuNavigator nav;
+    enum class MenuID {main_menu, users_menu, clients_menu, transaction_menu, transfer_menu, transfer_internal, currency_menu, settings_menu};
+    tu::MenuNavigator<MenuID> nav;
 
     /*
     * ------------------------------------------
@@ -94,20 +95,19 @@ void run_bank()
         in `nav.add("main", [&](MenuNavigator& n)`
         it only accepts std::string as of now
     */
-    enum class MenuID { Main, Accounts, Clients };
 
     // === MAIN MENU ===
-    nav.add("main", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::main_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Bank System")
                         .set_width(40)
                         .set_date()
                         .add_global_subtitle("Logged in as: " + USERNAME)
-                        .add_item("Manage Clients", [&]{ n.push("clients");      }, perm(bank::Permission::ManageClients))
-                        .add_item("Manage Users",   [&]{ n.push("users");        }, perm(bank::Permission::ManageUsers))
-                        .add_item("Transactions",   [&]{ n.push("transactions"); })
-                        .add_item("Currency",       [&]{ n.push("currency");     })
-                        .add_item("Settings",       [&]{ n.push("settings");     })
+                        .add_item("Manage Clients", [&]{ n.push(MenuID::clients_menu);      }, perm(bank::Permission::ManageClients))
+                        .add_item("Manage Users",   [&]{ n.push(MenuID::users_menu);        }, perm(bank::Permission::ManageUsers))
+                        .add_item("Transactions",   [&]{ n.push(MenuID::transaction_menu);  })
+                        .add_item("Currency",       [&]{ n.push(MenuID::currency_menu);     })
+                        .add_item("Settings",       [&]{ n.push(MenuID::settings_menu);     })
                         .add_separator()
                         .add_item("Logout", [&]
                         {
@@ -117,7 +117,7 @@ void run_bank()
                         });
     });
     // === CLIENTS MENU ===
-    nav.add("clients", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::clients_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Manage Clients")
             .add_item("Show Clients List", [&]
@@ -156,7 +156,7 @@ void run_bank()
     });
 
     // === USERS MENU ===
-    nav.add("users", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::users_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Manage Users")
             .add_item("Show Users List", [&]
@@ -195,20 +195,20 @@ void run_bank()
     });
 
     // === TRANSACTIONS MENU ===
-    nav.add("transactions", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::transaction_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Transactions")
-            .add_item("Transfer", [&]{ n.push("transfer"); })
+            .add_item("Transfer", [&]{ n.push(MenuID::transfer_menu); })
             .add_item("History", nullptr, [&]{ return false; })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
     // === TRANSFER MENU ===
-    nav.add("transfer", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::transfer_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Transfer Money")
-                        .add_item("To Internal Account", [&]{ n.push("transfer_internal"); }) // internal: within this bank
+                        .add_item("To Internal Account", [&]{ n.push(MenuID::transfer_internal); }) // internal: within this bank
                         .add_item("To External Account", nullptr, [&]{ return false; })       // external: to another bank (if added); YAGNI :P
                         .add_separator()
                         .add_item("Back to Transactions", [&]{ n.pop(); })
@@ -216,7 +216,7 @@ void run_bank()
     });
 
     // === TRANSFER INTERNAL MENU ===
-    nav.add("transfer_internal", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::transfer_internal, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("To Internal Account")
             .add_item("Transfer", [&] 
@@ -243,7 +243,7 @@ void run_bank()
     });
 
     // === SETTINGS MENU ===
-    nav.add("settings", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::settings_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Settings")
             .add_item("Language", nullptr, [&]{ return false; }) // in case i ever touch locale.h or tinker with UTF-8 + yet another YAGNI :P
@@ -257,7 +257,7 @@ void run_bank()
     });
 
     // === CURRENCY MENU ===
-    nav.add("currency", [&](tu::MenuNavigator& n)
+    nav.add(MenuID::currency_menu, [&](tu::MenuNavigator<MenuID>& n)
     {
         return tu::Menu::create("Currency")
             .add_item("List Currencies", [&]
@@ -296,7 +296,7 @@ void run_bank()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
-    nav.run("main");
+    nav.run(MenuID::main_menu);
 }
 
 void run_bank_demo()

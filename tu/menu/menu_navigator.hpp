@@ -10,62 +10,81 @@
 
 namespace tu
 {
-    /**
-     * @brief Manages navigation between named menus using an internal stack
-     * 
-     * Abstracts stack-based navigation so users of the library
-     * don't need to manage a navigation stack manually
-     * 
+     /**
+     * @brief manages navigation between named menus using an internal stack
+     *
+     * abstracts stack-based navigation so callers don't need to manage a
+     * navigation stack manually. menus are registered by name via `add()`,
+     * then driven by `run()` which builds each menu fresh on every iteration.
+     *
+     * @tparam Key  type used to identify menus (default: `std::string`); can be
+     *              an enum class for compile-time safety and typo prevention
+     * @tparam Hash hash function for `Key` (default: `std::hash<Key>`)
+     *
      * @code
-     * MenuNavigator nav;
-     * nav.add("main", [&](MenuNavigator& n)
+     * // string keys (default)
+     * tu::MenuNavigator<> nav;
+     * nav.add("main", [&](tu::MenuNavigator<>& n)
      * {
-     *     return Menu::create("Bank System")
+     *     return tu::Menu::create("Bank System")
      *         .add_item("Accounts", [&]{ n.push("accounts"); })
      *         .add_item("Quit",     [&]{ n.exit(); });
      * });
-     * nav.add("accounts", [&](MenuNavigator& n)
-     * {
-     *     return Menu::create("Accounts")
-     *         .add_item("Back", [&]{ n.pop(); });
-     * });
      * nav.run("main");
+     *
+     * // enum keys
+     * enum class MenuID { Main, Accounts };
+     * tu::MenuNavigator<MenuID> nav;
+     * nav.add(MenuID::Main, [&](tu::MenuNavigator<MenuID>& n)
+     * {
+     *     return tu::Menu::create("Bank System")
+     *         .add_item("Accounts", [&]{ n.push(MenuID::Accounts); })
+     *         .add_item("Quit",     [&]{ n.exit(); });
+     * });
+     * nav.run(MenuID::Main);
      * @endcode
      */
+    template<typename Key = std::string, typename Hash = std::hash<Key>>
     class MenuNavigator
     {
         public:
             /** @brief factory function type: builds and returns a `Menu` given the navigator */
             using MenuFactory = std::function<Menu(MenuNavigator&)>;
 
+
             /**
-             * @brief register a named `menu` so the navigator knows it exists
-             * @param name    unique name identifying this menu
-             * @param factory function that builds and returns the `Menu`
-             * @return reference to this navigator (allows chaining)
+             * @brief register a named menu with its factory function
+             *
+             * the factory is called every time the menu becomes active, ensuring
+             * it reflects the latest runtime state (permissions, date, visibility, etc.)
+             *
+             * @param name    unique key identifying this menu
+             * @param factory callable that builds and returns the `Menu`
+             * @return        reference to this navigator for chaining
              */
-            MenuNavigator& add(std::string name, MenuFactory factory)
+            MenuNavigator& add(Key name, MenuFactory factory)
             {
                 m_registry[std::move(name)] = std::move(factory);
                 return *this;
             }
 
-            /**
-             * @brief navigate to a registered `menu` at runtime
-             * 
-             * The pushed `menu` becomes the active one on the next iteration of `run()`
-             * 
-             * @param name the registered name of the menu to navigate to
-             * 
+
+             /**
+             * @brief push a registered `menu` onto the stack, making it the active menu
+             *
+             * the pushed `menu` becomes the active one on the next iteration of `run()`
+             *
+             * @param name the registered key of the menu to navigate to
              * @throws `std::runtime_error` if `name` has not been registered via `add()`
              */
-            void push(const std::string& name)
+            void push(const Key& name)
             {
                 if(m_registry.find(name) == m_registry.end())
-                    throw std::runtime_error("MenuNavigator: unknown menu '" + name + "'");
+                    throw std::runtime_error("MenuNavigator: unknown menu");
 
                 m_stack.push(name);
             }
+
 
             /**
              * @brief pop the current `menu`: go back to the previous one
@@ -75,6 +94,7 @@ namespace tu
                 if(!m_stack.empty())
                     m_stack.pop();
             }
+
 
             /**
              * @brief exit the navigator entirely and clears the navigation stack and stops the `run()` loop
@@ -87,25 +107,29 @@ namespace tu
                 m_running = false;
             }
 
-            /**
+
+             /**
              * @brief start navigation from a named menu
-             * 
-             * `push()` `start_menu` onto the stack and enters the navigation loop
-             * each iteration builds the current menu fresh via its factory, runs it,
-             * and `pop()` the stack if the user quits
-             * the loop exits when the stack is empty or `exit()` is called
-             * 
-             * @param start_menu Name of the initial menu to display
+             *
+             * pushes `start_menu` onto the stack and enters the navigation loop.
+             * each iteration builds the current menu fresh via its factory and runs it.
+             * if the user quits (`q`), the current menu is popped from the stack.
+             * the loop exits when the stack is empty or `exit()` is called.
+             *
+             * @note menus are rebuilt on every iteration to reflect runtime state changes
+             * such as date updates, permission changes, and visibility predicates.
+             *
+             * @param start_menu the registered key of the initial menu to display
              * @throws `std::runtime_error` if `start_menu` has not been registered via `add()`
              */
-            void run(const std::string& start_menu)
+            void run(const Key& start_menu)
             {
                 push(start_menu);
                 m_running = true;
 
                 while(m_running && !m_stack.empty())
                 {
-                    const std::string& current = m_stack.top();
+                    const Key& current = m_stack.top();
 
                     auto it = m_registry.find(current);
 
@@ -125,9 +149,9 @@ namespace tu
 
 
         private:
-            std::unordered_map<std::string, MenuFactory> m_registry;         ///< maps menu names to their factory functions
-            std::stack<std::string>                      m_stack;            ///< navigation history, current `menu` on top
-            bool                                         m_running = false;  ///< controls the `run()` loop
+            std::unordered_map<Key, MenuFactory, Hash> m_registry;           ///< maps each registered menu name to its factory function; keyed by `Key`, hashed via `Hash`
+            std::stack<Key>                            m_stack;              ///< navigation history, current `menu` on top
+            bool                                       m_running = false;    ///< controls the `run()` loop
     };
 
 } // namespace tu
