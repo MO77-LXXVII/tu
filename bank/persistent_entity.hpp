@@ -88,13 +88,15 @@ class PersistentEntity
         //       Public API 
         // =========================
 
-
         /**
          * @brief load all records from the entity's file
-         * @return vector of all decoded records, empty if the file cannot be opened
+         * @return `const` reference to the cached records, empty vector if the file cannot be opened
          * @note calls `Derived::file_name()` and `Derived::decode()` internally
+         * 
+         * @warning the returned reference is only valid until the next mutating operation (`add()`, `update()`, `delete()`)
+         * do not store this reference; iterate or copy immediately
          */
-        [[nodiscard]] static std::vector<Derived> load_all()
+        [[nodiscard]] static const std::vector<Derived>& load_all()
         {
             // Uses cached data now
             return FileCache<Derived>::load();
@@ -109,7 +111,7 @@ class PersistentEntity
          */
         [[nodiscard]] static std::optional<Derived> find(const std::string& key)
         {
-            for(auto& record : load_all())
+            for(const auto& record : load_all())
                 if(record.matches_key(key))
                     return record;
 
@@ -238,7 +240,7 @@ class PersistentEntity
         /** @brief append this record to the file */
         bool _add()
         {
-            std::vector<Derived> records = load_all();
+            auto records = load_all();
 
             records.push_back(self());
 

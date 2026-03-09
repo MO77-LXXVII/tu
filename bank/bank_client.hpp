@@ -233,7 +233,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
          */
         [[nodiscard]] static std::optional<BankClient> find(const std::string& account_number)
         {
-            for(auto& c : load_all())
+            for(const auto& c : load_all())
                 if(c.m_account_number == account_number)
                     return c;
 
@@ -249,7 +249,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
          */
         [[nodiscard]] static std::optional<BankClient> find(const std::string& account_number, const std::string& pin_code)
         {
-            for(auto& c : load_all())
+            for(const auto& c : load_all())
                 if(c.m_account_number == account_number && c.m_pin_code == pin_code)
                     return c;
 
@@ -449,7 +449,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         /** @brief print all clients in the system, or a message if none exist */
         static void list_clients()
         {
-            auto clients = load_all();
+            const auto& clients = load_all();
 
             if(clients.empty())
             {

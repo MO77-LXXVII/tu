@@ -297,8 +297,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
          */
         [[nodiscard]] static std::optional<BankUser> find(const std::string& username)
         {
-            for (auto& u : load_all())
-                if (u.m_username == username)
+            for(const auto& u : load_all())
+                if(u.m_username == username)
                     return u;
 
             return std::nullopt;
@@ -314,8 +314,8 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         [[nodiscard]] static std::optional<BankUser> find(const std::string& username,
                                                           const std::string& password)
         {
-            for (auto& u : load_all())
-                if (u.m_username == username && u.m_password == password)
+            for(const auto& u : load_all())
+                if(u.m_username == username && u.m_password == password)
                     return u;
 
             return std::nullopt;
@@ -420,10 +420,10 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             };
 
             std::string result;
-            for (Permission pn : all_permissions)
-                if (has_permission(p, pn))
+            for(Permission pn : all_permissions)
+                if(has_permission(p, pn))
                 {
-                    if (!result.empty())
+                    if(!result.empty())
                         result += " | ";
                     result += get_permission_name(pn);
                 }
@@ -458,13 +458,13 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                 Permission::Deposit, Permission::Withdraw, Permission::Transfer
             };
 
-            for (Permission p : all_permissions)
+            for(Permission p : all_permissions)
             {
                 std::cout << "Should this user have access to [ "
                           << underline(red(terminal_utils::bold(std::string(get_permission_name(p)))))
                           << " ]? (y/n): ";
 
-                if (terminal_utils::input::get_yes_no(""))
+                if(terminal_utils::input::get_yes_no(""))
                     granted |= p;
             }
 
@@ -628,9 +628,9 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         /** @brief print all users in the system, or a message if none exist */
         static void list_users()
         {
-            auto users = load_all();
+            const auto& users = load_all();
 
-            if (users.empty())
+            if(users.empty())
             {
                 std::cout << "No users in the system.\n";
                 return;
@@ -639,7 +639,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             terminal_utils::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "username", "password", "permissions", "mode"});
 
-            for (const BankUser& u : users)
+            for(const BankUser& u : users)
                 table.add_row_owned({u.m_first_name, u.m_last_name, u.m_email, u.m_phone_num,
                                      u.m_username, u.m_password,
                                      std::to_string(static_cast<uint32_t>(u.m_permissions)),
@@ -686,7 +686,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         static void update_user()
         {
             auto opt = BankUser::find(get_valid_username());
-            if (!opt) return;
+            if(!opt) return;
 
             BankUser user = *opt;
 
@@ -717,14 +717,14 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         {
             std::string username = get_valid_username();
             auto        opt      = BankUser::find(username);
-            if (!opt) return;
+            if(!opt) return;
 
             BankUser user = *opt;
 
             terminal_utils::platform::clear_terminal();
             user.print_user_details();
 
-            if (!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this user? (y/n):"))
+            if(!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this user? (y/n):"))
             {
                 std::cout << "\nDelete operation canceled.\n";
                 return;

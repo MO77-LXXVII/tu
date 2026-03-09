@@ -215,7 +215,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
          */
         [[nodiscard]] static std::optional<CurrencyExchange> find(const std::string& currency_code)
         {
-            for(auto& u : load_all())
+            for(const auto& u : load_all())
                 if(u.m_currency_code == currency_code)
                     return u;
 
@@ -231,7 +231,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         [[nodiscard]] static std::optional<std::vector<CurrencyExchange>> find_all(const std::string& currency_code)
         {
             std::vector<CurrencyExchange> currencies_with_same_code;
-            for(auto& u : load_all())
+            for(const auto& u : load_all())
                 if(u.m_currency_code == currency_code)
                     currencies_with_same_code.push_back(u);
 
@@ -413,7 +413,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         /** @brief print all currency records in the system, or a message if none exist */
         static void list_available_currencies()
         {
-            auto currencies = load_all();
+            const auto& currencies = load_all();
 
             if(currencies.empty())
             {
