@@ -71,6 +71,8 @@ namespace tu
 
             /**
              * @brief factory function to create a `Menu` with the given title
+             * 
+             * @note resets global subtitles on each call to prevent accumulation across sessions
              *
              * preferred over the constructor for a more expressive fluent interface:
              * 
@@ -83,9 +85,11 @@ namespace tu
              *
              * @param title text displayed at the top of the menu
              * @return a new `Menu` instance
+             * 
              */
             [[nodiscard]] static Menu create(std::string title)
             {
+                m_global_subtitles.clear();
                 return Menu(std::move(title));
             }
 
