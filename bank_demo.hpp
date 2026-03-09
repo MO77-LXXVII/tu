@@ -83,18 +83,10 @@ void run_bank()
 
     auto perm = for_user(bank_user);
 
-    enum class MenuID {main_menu, users_menu, clients_menu, transaction_menu, transfer_menu, transfer_internal, currency_menu, settings_menu};
+    enum class MenuID {main_menu, users_menu, clients_menu,
+                       transaction_menu, transfer_menu, transfer_internal,
+                       currency_menu, settings_menu};
     tu::MenuNavigator<MenuID> nav;
-
-    /*
-    * ------------------------------------------
-    ! ------------------------------------------
-    ! ------------------------------------------
-    ! ------------------------------------------
-        Supporting enums would require templates
-        in `nav.add("main", [&](MenuNavigator& n)`
-        it only accepts std::string as of now
-    */
 
     // === MAIN MENU ===
     nav.add(MenuID::main_menu, [&](tu::MenuNavigator<MenuID>& n)
