@@ -58,6 +58,7 @@
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
 #include "../terminal_utils/config.hpp"
+#include "file_cache.hpp"  
 
 static constexpr std::string_view SEPARATOR = "#//#";
 
@@ -95,18 +96,8 @@ class PersistentEntity
          */
         [[nodiscard]] static std::vector<Derived> load_all()
         {
-            std::vector<Derived> records;
-
-            std::ifstream file(Derived::file_name().data());
-            if(!file.is_open())
-                return records;
-
-            std::string line;
-            while(std::getline(file, line))
-                if(!line.empty())
-                    records.push_back(Derived::decode(line));
-
-            return records;
+            // Uses cached data now
+            return FileCache<Derived>::load();
         }
 
 
