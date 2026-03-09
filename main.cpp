@@ -7,12 +7,12 @@
 #include <string>
 
 #include "platform/platform.hpp"
+
 #include "tu/ansi_colors.hpp"
 #include "tu/style_wrappers.hpp"
 #include "tu/input.hpp"
 #include "tu/output.hpp"
 #include "tu/logger.hpp"
-
 #include "tu/menu/menu.hpp"
 #include "tu/menu/menu_navigator.hpp"
 
@@ -20,8 +20,7 @@
 #include "bank/bank_user.hpp"
 #include "bank/currency_exchange.hpp"
 
-namespace tu = tu;
-// using namespace tu;
+
 
 using namespace std;
 

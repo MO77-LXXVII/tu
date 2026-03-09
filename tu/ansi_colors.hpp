@@ -387,4 +387,4 @@ namespace tu
             return os;
         }
     }
-} // namespace terminal_utils
+} // namespace tu
