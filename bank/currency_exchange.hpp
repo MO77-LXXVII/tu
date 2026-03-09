@@ -18,7 +18,7 @@
 
 // ============================================================
 // CurrencyExchange
-// Inherits shared persistence from PersistentEntity<BankClient>
+// Inherits shared persistence from PersistentEntity<CurrencyExchange>
 // Only implements the 5 required CRTP hooks + its own business logic
 // ============================================================
 
@@ -26,9 +26,12 @@
 /**
  * @brief represents a currency exchange rate entry
  * 
- * inherits shared persistence from `PersistentEntity<CurrencyExchange>`
+ * stores the exchange rate of a currency relative to USD, along with
+ * the country and currency name. multiple countries can share the same
+ * currency code (e.g. "USD" for both the US and Ecuador).
  * 
- * implements the required CRTP hooks: `encode()`, `decode()`, `file_name()`, `key()`, `matches_key()`, `sort()`
+ * use `find_all()` instead of `find()` when multiple matches are possible,
+ * and `select_from_matches()` to let the user pick one.
  */
 class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 {

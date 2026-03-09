@@ -22,6 +22,16 @@
 // Only implements the 5 required CRTP hooks + its own business logic
 // ============================================================
 
+
+/**
+ * @brief represents a bank client with an account, PIN, and balance
+ * 
+ * each client has a unique account number used for lookups and transactions
+ * supports deposit, withdrawal, and transfer operations with balance cap enforcement
+ * 
+ * use `find()` with account number and PIN for ATM-style authentication,
+ * or `find()` with account number only for admin lookups
+ */
 class BankClient : public PersistentEntity<BankClient>, public Person
 {
     // ----------------------------------------------------------

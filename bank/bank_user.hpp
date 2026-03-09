@@ -5,7 +5,7 @@
 #include <fstream>
 #include <limits>
 #include <cstdint>
-
+ 
 #include "person.hpp"
 #include "../terminal_utils/output.hpp"
 #include "../terminal_utils/config.hpp"
@@ -16,7 +16,15 @@
 #include "../utils/utils.hpp"
 #include "bank/persistent_entity.hpp"
 
-// max value: 8191
+
+/**
+ * @brief bitmask enum representing individual user permissions
+ * 
+ * each value is a distinct bit, allowing combinations via bitwise OR.
+ * use `has_permission()` to test if a permission is granted.
+ * 
+ * @note max combined value is 8191 (all 13 bits set)
+ */
 enum class Permission : uint32_t
 {
     None            = 0,
@@ -50,29 +58,43 @@ enum class Permission : uint32_t
         Transfer
 };
 
-// Bitwise operators
+
+/** @brief combines two permissions */
 inline constexpr Permission operator|(Permission a, Permission b)
 {
     return static_cast<Permission>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
 }
 
+
+/** @brief adds a permission in place */
 inline constexpr Permission& operator|=(Permission& a, Permission b)
 {
     a = a | b;
     return a;
 }
 
+
+/** @brief intersects two permissions */
 inline constexpr Permission operator&(Permission a, Permission b)
 {
     return static_cast<Permission>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
 }
 
+
+/** @brief intersects a permission in place */
 inline constexpr Permission& operator&=(Permission& a, Permission b)
 {
     a = a & b;
     return a;
 }
 
+
+/**
+ * @brief checks if `user` has at least one bit of `required` set
+ * @param user     the user's permission bitmask
+ * @param required the permission(s) to check for
+ * @return `true` **if any bit** in `required` is set in `user`
+ */
 inline constexpr bool has_permission(Permission user, Permission required)
 {
     return static_cast<uint32_t>(user & required) != 0;
@@ -86,6 +108,16 @@ inline constexpr bool has_permission(Permission user, Permission required)
 // Only implements the 6 required CRTP hooks + its own business logic
 // ============================================================
 
+
+/**
+ * @brief represents a bank system user with login credentials and access permissions
+ * 
+ * each user has a username/password pair for authentication and a `Permission`
+ * bitmask that controls which operations they can perform in the system
+ * 
+ * use `login()` to authenticate, `save_with_result()` to persist changes,
+ * and `has_permission()` to check access before performing operations
+ */
 class BankUser : public PersistentEntity<BankUser>, public Person
 {
     // ----------------------------------------------------------
