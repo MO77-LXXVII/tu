@@ -200,7 +200,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
 
         /** @brief returns `true` if this record's account number matches `k` */
-        [[nodiscard]] bool matches_key(const std::string& k) const
+        [[nodiscard]] bool matches_key(std::string_view k) const
         {
             return m_account_number == k;
         }
