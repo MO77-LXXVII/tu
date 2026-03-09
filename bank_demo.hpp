@@ -232,7 +232,7 @@ void run_bank()
     nav.add("settings", [&](tu::MenuNavigator& n)
     {
         return tu::Menu::create("Settings")
-            .add_item("Language", nullptr, [&]{ return false; }) // in case i ever touch locale.h or tinker with UTF-8 & YAGNI :P
+            .add_item("Language", nullptr, [&]{ return false; }) // in case i ever touch locale.h or tinker with UTF-8 + yet another YAGNI :P
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
@@ -277,14 +277,6 @@ void run_bank()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
-            //     }, perm(bank::Permission::ShowUsers))
-            // .add_item("Add User", [&]
-            // {
-            //     tu::platform::clear_terminal();
-            //     bank::BankUser::add_user();
-            //     tu::input::get_menu_key(tu::dim("Press Enter..."));
-            // }, perm(bank::Permission::AddUser))
-
     nav.run("main");
 }
 
@@ -295,8 +287,7 @@ void run_bank_demo()
 
     LOG_INFO("Bank application starting");
 
-    // The alternate buffer would hide output printed after the application exits
-    // Introduce a scope to ensure RAII restores the main buffer early before printing
+    // scope ensures `AnsiGuard` restores the terminal before the final message is printed
     {
         tu::platform::AnsiGuard a;
         LOG_INFO("Terminal initialized");
@@ -310,7 +301,7 @@ void run_bank_demo()
         }
     }
 
-    // the final message to be printed on the main buffer screen.
+    // the final message to be printed
     std::cout << italic(bold(tu::yellow("Bye User!"))) << std::endl;
 
     LOG_INFO("Bank application shutting down");
