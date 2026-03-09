@@ -27,6 +27,9 @@ namespace tu::config
 
     /** @brief Path to the users file */
     inline constexpr std::string_view USERS_FILE_NAME             = "bank/data/users.txt";
+    
+    /** @brief Path to the transactions audit file */
+    inline constexpr std::string_view TRANSACTIONS_FILE_NAME = "bank/data/transactions.txt";
 
 
     // Business rules
