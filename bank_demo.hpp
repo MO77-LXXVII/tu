@@ -22,9 +22,6 @@
 #include "bank/bank_user.hpp"
 #include "bank/currency_exchange.hpp"
 
-using namespace std;
-
-
 /**
  * @brief Returns a visibility checker for the given permission.
  * 
