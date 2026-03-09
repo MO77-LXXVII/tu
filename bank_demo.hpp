@@ -84,42 +84,22 @@ void run_bank()
     nav.add("main", [&](tu::MenuNavigator& n)
     {
         return tu::Menu::create("Bank System")
-            .set_width(40)
-            .set_date()
-            .add_global_subtitle("Logged in as: " + USERNAME)
-            .add_item("Accounts",       [&]{ n.push("accounts"); })
-            .add_item("Manage Clients", [&]{ n.push("clients"); },      perm(bank::Permission::Deposit))
-            .add_item("Manage Users",   [&]{ n.push("users"); },        perm(bank::Permission::Withdraw))
-            .add_item("Transactions",   [&]{ n.push("transactions"); })
-            .add_item("Currency",       [&]{ n.push("currency"); })
-            .add_item("Settings",       [&]{ n.push("settings"); })
-            .add_separator()
-            .add_item("Logout", [&]
-            {
-                bank_user.logout();
-                LOG_INFO("User (" + USERNAME + ") logged out of the system");
-                n.exit();
-            });
+                        .set_width(40)
+                        .set_date()
+                        .add_global_subtitle("Logged in as: " + USERNAME)
+                        .add_item("Manage Clients", [&]{ n.push("clients");      }, perm(bank::Permission::Deposit))
+                        .add_item("Manage Users",   [&]{ n.push("users");        }, perm(bank::Permission::Withdraw))
+                        .add_item("Transactions",   [&]{ n.push("transactions"); })
+                        .add_item("Currency",       [&]{ n.push("currency");     })
+                        .add_item("Settings",       [&]{ n.push("settings");     })
+                        .add_separator()
+                        .add_item("Logout", [&]
+                        {
+                            bank_user.logout();
+                            LOG_INFO("User (" + USERNAME + ") logged out of the system");
+                            n.exit();
+                        });
     });
-
-    // === ACCOUNTS MENU ===
-    nav.add("accounts", [&](tu::MenuNavigator& n)
-    {
-        return tu::Menu::create("Accounts")
-            .add_item("Deposit", [&]
-            {
-                bank::BankClient::ui_deposit();
-                tu::input::get_menu_key(tu::dim("Press Enter..."));
-            }, perm(bank::Permission::Deposit))
-            .add_item("Withdraw", [&]
-            {
-                bank::BankClient::ui_withdraw();
-                tu::input::get_menu_key(tu::dim("Press Enter..."));
-            }, perm(bank::Permission::Withdraw))
-            .add_separator()
-            .add_item("Back to Main", [&]{ n.pop(); });
-    });
-
     // === CLIENTS MENU ===
     nav.add("clients", [&](tu::MenuNavigator& n)
     {
@@ -215,23 +195,44 @@ void run_bank()
     nav.add("transfer", [&](tu::MenuNavigator& n)
     {
         return tu::Menu::create("Transfer Money")
-            .add_item("To Internal Account", [&]
+                        .add_item("To Internal Account", [&]{ n.push("transfer_internal"); }) // internal: within this bank
+                        .add_item("To External Account", nullptr, [&]{ return false; })       // external: to another bank (if added); YAGNI :P
+                        .add_separator()
+                        .add_item("Back to Transactions", [&]{ n.pop(); })
+                        .add_item("Back to Main Menu", [&]{ n.pop(); n.pop(); });
+    });
+
+    // === TRANSFER INTERNAL MENU ===
+    nav.add("transfer_internal", [&](tu::MenuNavigator& n)
+    {
+        return tu::Menu::create("To Internal Account")
+            .add_item("Transfer", [&]
             {
                 bank::BankClient::ui_transfer();
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
-            })
-            .add_item("To External Account", nullptr, [&]{ return false; }) // YAGNI :P
+            }, perm(bank::Permission::Transfer))
+
+            .add_item("Deposit", [&]
+            {
+                bank::BankClient::ui_deposit();
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
+            }, perm(bank::Permission::Deposit))
+
+            .add_item("Withdraw", [&]
+            {
+                bank::BankClient::ui_withdraw();
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
+            }, perm(bank::Permission::Withdraw))
+
             .add_separator()
-            .add_item("Back to Transactions", [&]{ n.pop(); })
-            .add_item("Back to Main", [&]{ n.pop(); n.pop(); });
+            .add_item("Back", [&]{ n.pop(); });
     });
 
     // === SETTINGS MENU ===
     nav.add("settings", [&](tu::MenuNavigator& n)
     {
         return tu::Menu::create("Settings")
-            .add_item("Change PIN", [&]{ std::cout << "PIN changed\n"; })
-            .add_item("Language",   [&]{ std::cout << "Language set\n"; })
+            .add_item("Language", nullptr, [&]{ return false; }) // in case i ever touch locale.h or tinker with UTF-8 & YAGNI :P
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
