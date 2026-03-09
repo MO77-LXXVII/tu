@@ -20,15 +20,8 @@
 #include "bank/bank_user.hpp"
 #include "bank/currency_exchange.hpp"
 
-
-
 using namespace std;
 
-struct Account
-{
-    std::string name;
-    double balance = 0.0;
-};
 
 /**
  * @brief Returns a visibility checker for the given permission.
