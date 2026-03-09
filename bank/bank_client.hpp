@@ -34,11 +34,18 @@
  */
 class BankClient : public PersistentEntity<BankClient>, public Person
 {
-    // ----------------------------------------------------------
-    // Types
-    // ----------------------------------------------------------
     public:
-        // Richer result type so callers know exactly what went wrong
+
+        // ignore IntelliSense scoping issue
+        // it gets confused about the scope of nested enums inside CRTP templates
+        /**
+         * @brief return type for `save_with_result()`; indicates success or the exact failure reason
+         * 
+         * - `succeeded`              record was saved successfully
+         * - `failed_empty_object`    attempted to save an empty record
+         * - `failed_account_exists`  account number already exists (add mode only)
+         * - `failed_cannot_update`   underlying I/O failure
+         */
         enum class SaveResult
         {
             succeeded,
@@ -47,6 +54,17 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             failed_cannot_update
         };
 
+
+        // ignore IntelliSense scoping issue
+        // it gets confused about the scope of nested enums inside CRTP templates
+        /**
+         * @brief return type for `transfer()`: indicates success or the exact failure reason
+         * 
+         * - `success`                   transfer completed successfully
+         * - `recipient_cap_exceeded`    transfer would exceed recipient's maximum balance
+         * - `save_failed`               I/O failure during withdraw or deposit
+         * - `critical_rollback_failed`  withdraw succeeded but deposit failed and rollback also failed
+         */
         enum class TransferResult
         {
             success,
@@ -55,25 +73,41 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             critical_rollback_failed
         };
 
-    // ----------------------------------------------------------
-    // Data
-    // ----------------------------------------------------------
-    protected:
-        std::string m_account_number;
-        std::string m_pin_code;
-        double      m_account_balance = 0.0;
 
-    // ----------------------------------------------------------
-    // Constructors
-    // ----------------------------------------------------------
+        // =========================
+        //         Data
+        // =========================
+
+    protected:
+        std::string m_account_number;        ///< unique account identifier
+        std::string m_pin_code;              ///< PIN for ATM authentication
+        double      m_account_balance = 0.0; ///< current account balance
+
+
     public:
-        // Empty sentinel: returned when a lookup finds nothing
+
+        // =========================
+        //     Constructors
+        // =========================
+
+        /** @brief default constructor: creates an empty sentinel with `Mode::empty_mode` */
         BankClient()
             : PersistentEntity(Mode::empty_mode)
             , Person("", "", "", "")
         {}
 
-        // Full constructor used everywhere (UI, decode, factory helpers)
+
+        /**
+         * @brief full constructor used by the UI, `decode()`, and factory helpers
+         * @param mode             persistence mode
+         * @param first_name       first name
+         * @param last_name        last name
+         * @param email            email address
+         * @param phone_num        phone number
+         * @param account_number   unique account identifier
+         * @param pin_code         PIN for authentication
+         * @param account_balance  initial account balance
+         */
         BankClient(Mode           mode,
                    std::string    first_name,
                    std::string    last_name,
@@ -89,17 +123,23 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             , m_account_balance (account_balance)
         {}
 
-    // ----------------------------------------------------------
-    // Factory helpers
-    // ----------------------------------------------------------
-    public:
+
+        // =========================
+        //     Factory helpers
+        // =========================
+
+
+        /** @brief creates an empty sentinel object equivalent to default construction */
         static BankClient make_empty()
         {
             return BankClient{};
         }
 
-        // Creates a shell in add_mode with only an account number set;
-        // caller fills in the rest via read_client_info()
+        /**
+         * @brief creates a shell in `add_mode` with only the account number set
+         * @param account_number unique account identifier for the new client
+         * @note caller fills in the remaining fields via `read_client_info()`
+         */
         static BankClient make_new(std::string account_number)
         {
             return BankClient(Mode::add_mode, "", "", "", "", std::move(account_number), "", 0.0);
@@ -163,7 +203,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // find() overload — by account + pin (for ATM login)
+    // find() overload: by account + pin (for ATM login)
     // The base find(key) covers the account-number-only case.
     // ----------------------------------------------------------
     public:
@@ -187,7 +227,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // Richer save() — wraps base save() and returns SaveResult
+    // Richer save(): wraps base save() and returns SaveResult
     // ----------------------------------------------------------
     public:
         /*
@@ -284,7 +324,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // UI — input
+    // UI: input
     // ----------------------------------------------------------
     public:
 
@@ -341,7 +381,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // UI — display
+    // UI: display
     // ----------------------------------------------------------
     public:
 
@@ -381,7 +421,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // UI — CRUD actions
+    // UI: CRUD actions
     // ----------------------------------------------------------
     public:
 
@@ -462,7 +502,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         }
 
     // ----------------------------------------------------------
-    // UI — transactions
+    // UI: transactions
     // ----------------------------------------------------------
     public:
 
@@ -587,7 +627,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                     break;
 
                 case TransferResult::critical_rollback_failed:
-                    std::cout << bold(terminal_utils::red("CRITICAL: rollback failed — contact customer support.\n"));
+                    std::cout << bold(terminal_utils::red("CRITICAL: rollback failed: contact customer support.\n"));
                     break;
 
                 case TransferResult::save_failed:
