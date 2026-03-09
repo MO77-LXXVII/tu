@@ -15,13 +15,13 @@
 
 
 /**
- * Forward declaration of `ColouredText` to avoid including `ansi_colours.hpp` here
+ * Forward declaration of `ColoredText` to avoid including `ansi_colours.hpp` here
  * as `ansi_colours.hpp` already includes `output.hpp`, so including it here would
  * create a circular dependency
  */
 namespace tu
 {
-    class ColouredText;
+    class ColoredText;
 }
 
 
@@ -122,7 +122,7 @@ namespace tu::output
      * @param a     the `Aligned<T>` descriptor containing the value and formatting parameters
      * @return      reference to `os` for chaining
      *
-     * @note for `ColouredText`, use the explicit specialization which accounts
+     * @note for `ColoredText`, use the explicit specialization which accounts
      *       for ANSI escape codes being excluded from padding calculations
      */
     template<typename T>
@@ -160,17 +160,17 @@ namespace tu::output
 
 
     /**
-     * @brief specialization of `operator<<` for `Aligned<ColouredText>`
+     * @brief specialization of `operator<<` for `Aligned<ColoredText>`
      *
      * the generic version streams the value into a temporary `std::ostringstream`
      * to measure its length for padding — this loses ANSI escape codes, printing plain text only
      * this specialization accesses `_text` directly for width calculation,
-     * then outputs the full `ColouredText` object with its ANSI codes intact
+     * then outputs the full `ColoredText` object with its ANSI codes intact
      *
-     * definition lives in `ansi_colours.hpp` where `ColouredText` is fully defined
+     * definition lives in `ansi_colours.hpp` where `ColoredText` is fully defined
      */
     template<>
-    std::ostream& operator<<(std::ostream& os, const Aligned<tu::ColouredText>& a);
+    std::ostream& operator<<(std::ostream& os, const Aligned<tu::ColoredText>& a);
 
 
     /**
