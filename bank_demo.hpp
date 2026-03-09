@@ -29,7 +29,8 @@ using namespace std;
  * @brief Returns a visibility checker for the given permission.
  * 
  * Usage:
- *   .add_item("Deposit", [&]{ ... }, bank::visible_if(bank::Permission::Deposit))
+ * 
+ *   `.add_item("Deposit", [&]{ ... }, bank::visible_if(bank::Permission::Deposit))`
  */
 inline auto visible_if(bank::Permission required, const bank::BankUser& user)
 {
@@ -43,8 +44,10 @@ inline auto visible_if(bank::Permission required, const bank::BankUser& user)
  * @brief Curry-style: bind the user first, then use for multiple items.
  * 
  * Usage:
- *   auto perm = bank::for_user(current_user);
- *   .add_item("Deposit", [&]{ ... }, perm(bank::Permission::Deposit))
+ * 
+ *   `auto perm = bank::for_user(current_user);`
+ * 
+ *   `.add_item("Deposit", [&]{ ... }, perm(bank::Permission::Deposit))`
  */
 inline auto for_user(const bank::BankUser& user)
 {
@@ -57,8 +60,6 @@ inline auto for_user(const bank::BankUser& user)
 
 void run_bank()
 {
-    using namespace tu;
-
     bank::BankUser bank_user{};
 
     if(!bank_user.login())
@@ -69,7 +70,7 @@ void run_bank()
 
     auto perm = for_user(bank_user);
 
-    MenuNavigator nav;
+    tu::MenuNavigator nav;
 
     /*
     * ------------------------------------------
@@ -83,9 +84,9 @@ void run_bank()
     enum class MenuID { Main, Accounts, Clients };
 
     // === MAIN MENU ===
-    nav.add("main", [&](MenuNavigator& n)
+    nav.add("main", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Bank System")
+        return tu::Menu::create("Bank System")
             .set_width(40)
             .set_date()
             .add_global_subtitle("Logged in as: " + USERNAME)
@@ -105,122 +106,122 @@ void run_bank()
     });
 
     // === ACCOUNTS MENU ===
-    nav.add("accounts", [&](MenuNavigator& n)
+    nav.add("accounts", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Accounts")
+        return tu::Menu::create("Accounts")
             .add_item("Deposit", [&]
             {
                 bank::BankClient::ui_deposit();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Deposit))
             .add_item("Withdraw", [&]
             {
                 bank::BankClient::ui_withdraw();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Withdraw))
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
     // === CLIENTS MENU ===
-    nav.add("clients", [&](MenuNavigator& n)
+    nav.add("clients", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Manage Clients")
+        return tu::Menu::create("Manage Clients")
             .add_item("Show Clients List", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankClient::list_clients();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::ShowClients))
             .add_item("Add Client", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankClient::add_client();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::AddClient))
             .add_item("Update Client", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankClient::update_client();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::UpdateClient))
             .add_item("Delete Client", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankClient::delete_client();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::DeleteClient))
             .add_item("Find Client", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankClient found_user = bank::BankClient::find(bank::BankClient::get_valid_account_num()).value();
                 found_user.print_client_details();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::FindClient))
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
     // === USERS MENU ===
-    nav.add("users", [&](MenuNavigator& n)
+    nav.add("users", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Manage Users")
+        return tu::Menu::create("Manage Users")
             .add_item("Show Users List", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankUser::list_users();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::ShowUsers))
             .add_item("Add User", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankUser::add_user();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::AddUser))
             .add_item("Update User", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankUser::update_user();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::UpdateUser))
             .add_item("Delete User", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankUser::delete_user();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::DeleteUser))
             .add_item("Find User", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::BankUser found_user = bank::BankUser::find(bank::BankUser::get_valid_username()).value();
                 found_user.print_user_details();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::FindUser))
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
     // === TRANSACTIONS MENU ===
-    nav.add("transactions", [&](MenuNavigator& n)
+    nav.add("transactions", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Transactions")
+        return tu::Menu::create("Transactions")
             .add_item("Transfer", [&]{ n.push("transfer"); })
             .add_item("History", [&]
             {
-                std::cout << yellow("\nNo history yet\n");
+                std::cout << tu::yellow("\nNo history yet\n");
             })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
 
     // === TRANSFER MENU ===
-    nav.add("transfer", [&](MenuNavigator& n)
+    nav.add("transfer", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Transfer Money")
+        return tu::Menu::create("Transfer Money")
             .add_item("To Internal Account", [&]
             {
                 bank::BankClient::ui_transfer();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("To External Account", nullptr, [&]{ return false; }) // YAGNI :P
             .add_separator()
@@ -229,9 +230,9 @@ void run_bank()
     });
 
     // === SETTINGS MENU ===
-    nav.add("settings", [&](MenuNavigator& n)
+    nav.add("settings", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Settings")
+        return tu::Menu::create("Settings")
             .add_item("Change PIN", [&]{ std::cout << "PIN changed\n"; })
             .add_item("Language",   [&]{ std::cout << "Language set\n"; })
             .add_separator()
@@ -239,40 +240,40 @@ void run_bank()
     });
 
     // === CURRENCY MENU ===
-    nav.add("currency", [&](MenuNavigator& n)
+    nav.add("currency", [&](tu::MenuNavigator& n)
     {
-        return Menu::create("Currency")
+        return tu::Menu::create("Currency")
             .add_item("List Currencies", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::CurrencyExchange::list_available_currencies();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("Add Currency", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::CurrencyExchange::add_currency();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("Update Currency", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::CurrencyExchange::update_currency();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("Find Currency", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 std::vector<bank::CurrencyExchange> currencies_with_same_code = bank::CurrencyExchange::find_all(bank::CurrencyExchange::get_valid_currency_code()).value();
 
                 bank::CurrencyExchange::print_currency_details(currencies_with_same_code);
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("Currency Calculator", [&]
             {
-                platform::clear_terminal();
+                tu::platform::clear_terminal();
                 bank::CurrencyExchange::convert_currency();
-                input::get_menu_key(dim("Press Enter..."));
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
@@ -281,9 +282,9 @@ void run_bank()
             //     }, perm(bank::Permission::ShowUsers))
             // .add_item("Add User", [&]
             // {
-            //     platform::clear_terminal();
+            //     tu::platform::clear_terminal();
             //     bank::BankUser::add_user();
-            //     input::get_menu_key(dim("Press Enter..."));
+            //     tu::input::get_menu_key(tu::dim("Press Enter..."));
             // }, perm(bank::Permission::AddUser))
 
     nav.run("main");
