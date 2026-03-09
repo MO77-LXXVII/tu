@@ -259,12 +259,12 @@ namespace bank
             /** @brief serialize this object into a file line, encrypting the password */
             [[nodiscard]] std::string encode() const
             {
-                return m_first_name                                                            + std::string(SEPARATOR)
+                return m_first_name                                                           + std::string(SEPARATOR)
                     + m_last_name                                                             + std::string(SEPARATOR)
                     + m_email                                                                 + std::string(SEPARATOR)
                     + m_phone_num                                                             + std::string(SEPARATOR)
                     + m_username                                                              + std::string(SEPARATOR)
-                    + utils::encrypt_text(m_password, tu::config::CIPHER_SHIFT)   + std::string(SEPARATOR)
+                    + utils::encrypt_text(m_password, tu::config::CIPHER_SHIFT)               + std::string(SEPARATOR)
                     + std::to_string(static_cast<uint32_t>(m_permissions));
             }
 

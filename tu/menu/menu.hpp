@@ -138,7 +138,7 @@ namespace tu
                 return *this; 
             }
 
-
+        
             /**
              * @brief sets the color used to highlight the currently selected item
              * @param color the highlight color (default: `Color::Cyan`)
@@ -148,6 +148,17 @@ namespace tu
             {
                 m_highlight_color = color;
                 return *this;
+            }
+
+
+            /**
+             * @brief sets the global highlight color shared across all `Menu` instances
+             * @param color the highlight color to apply globally
+             * @note prefer the instance method `set_highlight_color()` when building menus via the fluent interface
+             */
+            static void set_highlight_color_global(Color color)
+            {
+                m_highlight_color = color;
             }
 
 
@@ -381,7 +392,7 @@ namespace tu
             std::vector<MenuItem> m_items;                               ///< list of menu items and separators
             int m_selected_index = -1;                                   ///< index of the currently selected item
             int m_width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
-            Color m_highlight_color = Color::Cyan;                    ///< color used to highlight the selected item
+            inline static Color m_highlight_color = Color::Cyan;         ///< color used to highlight the selected item
     };
 
 
