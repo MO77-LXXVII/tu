@@ -9,7 +9,7 @@
 #include <ctime>
 #include <algorithm>
 
-#include "../terminal_utils/output.hpp"
+#include "../tu/output.hpp"
 
 namespace utils
 {
@@ -374,7 +374,7 @@ namespace utils
 
             void print_month_calendar(Date d)
             {
-                terminal_utils::output::FormatGuard fg;
+                tu::output::FormatGuard fg;
 
                 std::cout << "________________________" << month_name(d._month) << "________________________" << std::endl;
 

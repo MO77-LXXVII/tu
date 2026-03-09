@@ -11,7 +11,7 @@
 #include "config.hpp"
 #include "output.hpp"
 
-namespace terminal_utils
+namespace tu
 {
     /**
      * @brief ANSI terminal colour codes for foreground text

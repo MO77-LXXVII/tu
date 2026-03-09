@@ -8,9 +8,9 @@
 #include <csignal>
 
 #include "platform.hpp"
-#include "terminal_utils/config.hpp"
+#include "tu/config.hpp"
 
-namespace terminal_utils::platform
+namespace tu::platform
 {
     namespace
     {
@@ -189,4 +189,4 @@ namespace terminal_utils::platform
         if(init_terminal())
             clear_terminal();
     }
-} // namespace terminal_utils::platform
+} // namespace tu::platform

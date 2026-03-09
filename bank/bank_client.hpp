@@ -6,10 +6,10 @@
 #include <limits>
 
 #include "person.hpp"
-#include "../terminal_utils/config.hpp"
-#include "../terminal_utils/output.hpp"
-#include "../terminal_utils/style_wrappers.hpp"
-#include "../terminal_utils/input.hpp"
+#include "../tu/config.hpp"
+#include "../tu/output.hpp"
+#include "../tu/style_wrappers.hpp"
+#include "../tu/input.hpp"
 #include "../platform/platform.hpp"
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
@@ -154,7 +154,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         /** @brief returns the file path for client records */
         [[nodiscard]] static std::string_view file_name()
         {
-            return terminal_utils::config::CLIENTS_FILE_NAME;
+            return tu::config::CLIENTS_FILE_NAME;
         }
 
 
@@ -173,7 +173,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 cd[2],                                                               // email
                 cd[3],                                                               // phone
                 cd[4],                                                               // account_number
-                utils::decrypt_text(cd[5], terminal_utils::config::CIPHER_SHIFT),    // pin(decrypted)
+                utils::decrypt_text(cd[5], tu::config::CIPHER_SHIFT),    // pin(decrypted)
                 std::stod(cd[6])                                                     // balance
             );
         }
@@ -187,7 +187,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                  + m_email                                                                 + std::string(SEPARATOR)
                  + m_phone_num                                                             + std::string(SEPARATOR)
                  + m_account_number                                                        + std::string(SEPARATOR)
-                 + utils::encrypt_text(m_pin_code, terminal_utils::config::CIPHER_SHIFT) + std::string(SEPARATOR)
+                 + utils::encrypt_text(m_pin_code, tu::config::CIPHER_SHIFT) + std::string(SEPARATOR)
                  + std::to_string(m_account_balance);
         }
 
@@ -281,7 +281,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
          */
         bool deposit(double amount)
         {
-            if(amount <= 0 || amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - m_account_balance)
+            if(amount <= 0 || amount > tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - m_account_balance)
                 return false;
 
             m_account_balance += amount;
@@ -315,7 +315,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
          */
         TransferResult transfer(double amount, BankClient& destination)
         {
-            if(destination.m_account_balance + amount > terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
+            if(destination.m_account_balance + amount > tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
                 return TransferResult::recipient_cap_exceeded;
 
             if(!withdraw(amount))
@@ -363,12 +363,12 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         /** @brief prompts for a unique (non-existing) account number */
         static std::string get_unique_account_num()
         {
-            std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
+            std::string account_num = tu::input::get_string("Enter client account number: ", "");
 
             while(BankClient::exists(account_num))
             {
                 std::cout << "\nAccount number already in use, choose another.\n";
-                account_num = terminal_utils::input::get_string("Enter client account number: ", "");
+                account_num = tu::input::get_string("Enter client account number: ", "");
             }
 
             return account_num;
@@ -378,12 +378,12 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         /** @brief prompts for an existing account number, loops until valid */
         static std::string get_valid_account_num()
         {
-            std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
+            std::string account_num = tu::input::get_string("Enter client account number: ", "");
 
             while(!BankClient::exists(account_num))
             {
                 std::cout << "\nNot a valid account number.\n";
-                account_num = terminal_utils::input::get_string("Enter client account number: ", "");
+                account_num = tu::input::get_string("Enter client account number: ", "");
             }
 
             return account_num;
@@ -401,22 +401,22 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             std::cout << "\n---------------------\n";
 
             std::cout << "\nEnter First Name: ";
-            client.m_first_name = terminal_utils::input::get_string();
+            client.m_first_name = tu::input::get_string();
 
             std::cout << "\nEnter Last Name: ";
-            client.m_last_name = terminal_utils::input::get_string();
+            client.m_last_name = tu::input::get_string();
 
             std::cout << "\nEnter Email: ";
-            client.m_email = terminal_utils::input::get_string();
+            client.m_email = tu::input::get_string();
 
             std::cout << "\nEnter Phone: ";
-            client.m_phone_num = terminal_utils::input::get_string();
+            client.m_phone_num = tu::input::get_string();
 
             std::cout << "\nEnter Pin Code: ";
-            client.m_pin_code = terminal_utils::input::get_string();
+            client.m_pin_code = tu::input::get_string();
 
             std::cout << "\nEnter Account Balance: ";
-            client.m_account_balance = terminal_utils::input::get_number<double>();
+            client.m_account_balance = tu::input::get_number<double>();
         }
 
 
@@ -424,11 +424,11 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         /** @brief print this client's details as a formatted table */
         void print_client_details() const
         {
-            terminal_utils::output::Table table;
+            tu::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "account_number", "pin_code", "account_balance", "mode"});
             table.add_row({m_first_name, m_last_name, m_email, m_phone_num, m_account_number, m_pin_code,
                            std::to_string(m_account_balance), std::string(mode_name(_mode))});
-            table.print(terminal_utils::output::Alignment::Center);
+            table.print(tu::output::Alignment::Center);
         }
 
 
@@ -443,7 +443,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 return;
             }
 
-            terminal_utils::output::Table table;
+            tu::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "account_number", "pin_code", "account_balance", "mode"});
 
             for(const BankClient& c : clients)
@@ -454,9 +454,9 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             const std::string label = "List of(" + std::to_string(clients.size()) + ") Client(s):";
             constexpr size_t  PADDING = 4;
-            std::cout << terminal_utils::output::print_aligned(label, label.size() + PADDING,
-                                                               terminal_utils::output::Alignment::Right) << "\n";
-            table.print(terminal_utils::output::Alignment::Center);
+            std::cout << tu::output::print_aligned(label, label.size() + PADDING,
+                                                               tu::output::Alignment::Right) << "\n";
+            table.print(tu::output::Alignment::Center);
         }
 
 
@@ -470,20 +470,20 @@ class BankClient : public PersistentEntity<BankClient>, public Person
         {
             BankClient client = BankClient::make_new(get_unique_account_num());
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             read_client_info(client, "Add Client Info:");
 
             switch(client.save_with_result())
             {
                 case SaveResult::succeeded:
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "Account added successfully:\n";
                     client.print_client_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " while saving the file.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " while saving the file.\n";
                     break;
             }
         }
@@ -497,7 +497,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             BankClient client = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             client.print_client_details();
             read_client_info(client, "Update Client Info:");
 
@@ -506,14 +506,14 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             switch(client.save_with_result())
             {
                 case SaveResult::succeeded:
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "Account updated successfully:\n";
                     client.print_client_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " couldn't update the client.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " couldn't update the client.\n";
                     break;
             }
         }
@@ -530,10 +530,10 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             BankClient client = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             client.print_client_details();
 
-            if(!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this client?(y/n):"))
+            if(!tu::input::get_yes_no("\n\nAre you sure you want to delete this client?(y/n):"))
             {
                 std::cout << "\nDelete operation canceled.\n";
                 return;
@@ -542,7 +542,7 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             client.set_mode(Mode::delete_mode);
             client.save();
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             std::cout << "Account(" << account_num << ") deleted successfully.\n";
         }
 
@@ -560,31 +560,31 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             BankClient client = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             client.print_client_details();
 
-            double amount = terminal_utils::input::get_number_in_range<double>(
+            double amount = tu::input::get_number_in_range<double>(
                 "Enter amount to deposit: ",
                 "Invalid amount.",
                 0.001,
-                terminal_utils::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - client.m_account_balance);
+                tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - client.m_account_balance);
 
             std::cout << "New balance will be: " << client.m_account_balance + amount << "\n";
 
-            if(!terminal_utils::input::get_yes_no("Confirm? "))
+            if(!tu::input::get_yes_no("Confirm? "))
             {
                 std::cout << "Operation aborted.\n";
                 return;
             }
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             if(client.deposit(amount))
             {
                 std::cout << "Deposit successful.\n";
                 client.print_client_details();
             }
             else
-                std::cout << bold(underline(terminal_utils::red("Deposit failed.\n")));
+                std::cout << bold(underline(tu::red("Deposit failed.\n")));
         }
 
 
@@ -596,10 +596,10 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             BankClient client = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             client.print_client_details();
 
-            double amount = terminal_utils::input::get_number_in_range<double>(
+            double amount = tu::input::get_number_in_range<double>(
                 "Enter amount to withdraw: ",
                 "Invalid amount.",
                 0.001,
@@ -607,20 +607,20 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             std::cout << "New balance will be: " << client.m_account_balance - amount << "\n";
 
-            if(!terminal_utils::input::get_yes_no("Confirm? "))
+            if(!tu::input::get_yes_no("Confirm? "))
             {
                 std::cout << "Operation aborted.\n";
                 return;
             }
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             if(client.withdraw(amount))
             {
                 std::cout << "Withdrawal successful.\n";
                 client.print_client_details();
             }
             else
-                std::cout << bold(underline(terminal_utils::red("Withdrawal failed.\n")));
+                std::cout << bold(underline(tu::red("Withdrawal failed.\n")));
         }
 
 
@@ -640,49 +640,49 @@ class BankClient : public PersistentEntity<BankClient>, public Person
 
             if(from.m_account_number == to.m_account_number)
             {
-                std::cout << underline(terminal_utils::red(terminal_utils::bold("Can't transfer to the same account.\n")));
+                std::cout << underline(tu::red(tu::bold("Can't transfer to the same account.\n")));
                 return;
             }
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             from.print_client_details();
             to.print_client_details();
 
-            double amount = terminal_utils::input::get_number_in_range<double>(
+            double amount = tu::input::get_number_in_range<double>(
                 "Enter amount to transfer: ",
                 "Invalid amount.",
                 0.001,
                 from.m_account_balance);
 
             std::cout << "(" << from.full_name() << ") new balance: "
-                      << terminal_utils::red(std::to_string(from.m_account_balance - amount)) << "\n";
+                      << tu::red(std::to_string(from.m_account_balance - amount)) << "\n";
             std::cout << "(" << to.full_name() << ") new balance: "
-                      << terminal_utils::green(std::to_string(to.m_account_balance + amount)) << "\n";
+                      << tu::green(std::to_string(to.m_account_balance + amount)) << "\n";
 
-            if(!terminal_utils::input::get_yes_no("Confirm transfer?(y/n)"))
+            if(!tu::input::get_yes_no("Confirm transfer?(y/n)"))
             {
                 std::cout << "Transfer canceled.\n";
                 return;
             }
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
 
             switch(from.transfer(amount, to))
             {
                 case TransferResult::success:
-                    std::cout << terminal_utils::green("Transfer successful.\n");
+                    std::cout << tu::green("Transfer successful.\n");
                     break;
 
                 case TransferResult::recipient_cap_exceeded:
-                    std::cout << terminal_utils::red("Transfer failed: would exceed recipient's maximum balance.\n");
+                    std::cout << tu::red("Transfer failed: would exceed recipient's maximum balance.\n");
                     break;
 
                 case TransferResult::critical_rollback_failed:
-                    std::cout << bold(terminal_utils::red("CRITICAL: rollback failed: contact customer support.\n"));
+                    std::cout << bold(tu::red("CRITICAL: rollback failed: contact customer support.\n"));
                     break;
 
                 case TransferResult::save_failed:
-                    std::cout << bold(underline(terminal_utils::red("Transfer failed: could not save transaction.\n")));
+                    std::cout << bold(underline(tu::red("Transfer failed: could not save transaction.\n")));
                     break;
             }
         }

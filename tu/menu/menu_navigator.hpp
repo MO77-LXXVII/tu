@@ -1,4 +1,4 @@
-// terminal_utils/menu_navigator.hpp
+// tu/menu_navigator.hpp
 #pragma once
 
 #include <string>
@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include "menu.hpp"
 
-namespace terminal_utils
+namespace tu
 {
     /**
      * @brief Manages navigation between named menus using an internal stack
@@ -130,4 +130,4 @@ namespace terminal_utils
             bool                                         m_running = false;  ///< controls the `run()` loop
     };
 
-} // namespace terminal_utils
+} // namespace tu

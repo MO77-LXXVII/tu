@@ -19,13 +19,13 @@
  * as `ansi_colours.hpp` already includes `output.hpp`, so including it here would
  * create a circular dependency
  */
-namespace terminal_utils
+namespace tu
 {
     class ColouredText;
 }
 
 
-namespace terminal_utils::output
+namespace tu::output
 {
     /**
      * @brief RAII wrapper that saves and restores sticky stream formatting state.
@@ -170,7 +170,7 @@ namespace terminal_utils::output
      * definition lives in `ansi_colours.hpp` where `ColouredText` is fully defined
      */
     template<>
-    std::ostream& operator<<(std::ostream& os, const Aligned<terminal_utils::ColouredText>& a);
+    std::ostream& operator<<(std::ostream& os, const Aligned<tu::ColouredText>& a);
 
 
     /**
@@ -368,7 +368,7 @@ namespace terminal_utils::output
                 return total_width;
             }
     };
-} // namespace terminal_utils::output
+} // namespace tu::output
 
 
 

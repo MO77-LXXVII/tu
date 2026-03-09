@@ -6,7 +6,7 @@
 #include <cstdint>
 
 // Compile-time configurations
-namespace terminal_utils::config
+namespace tu::config
 {
     // Logging
     /** @brief Log output file path (relative to working directory) */
@@ -57,4 +57,4 @@ namespace terminal_utils::config
 
     // Ensure cipher shift is non-zero (no encryption) and within uint8_t range
     static_assert(CIPHER_SHIFT > 0 && CIPHER_SHIFT < 256);
-} // namespace terminal_utils::config
+} // namespace tu::config

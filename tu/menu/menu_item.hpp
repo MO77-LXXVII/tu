@@ -1,11 +1,11 @@
-// terminal_utils/menu_item.hpp
+// tu/menu_item.hpp
 #pragma once
 
 #include <iostream>
 #include <string>
 #include <functional>
 
-namespace terminal_utils
+namespace tu
 {
     namespace
     {
@@ -120,4 +120,4 @@ namespace terminal_utils
             std::function<void()> m_action = nullptr;     /**< action to execute when selected */
             std::function<bool()> m_visibility = nullptr; /**< optional callback to determine dynamic visibility */
     };
-} // namespace terminal_utils
+} // namespace tu

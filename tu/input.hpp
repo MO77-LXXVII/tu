@@ -9,7 +9,7 @@
 #include <cctype>
 #include <type_traits>
 
-namespace terminal_utils::input
+namespace tu::input
 {
     namespace
     {
@@ -326,4 +326,4 @@ namespace terminal_utils::input
             std::cout << "Please enter " << "'y'" << " for yes or " << "'n'" << " for no.\n";
         }
     }
-} // namespace terminal_utils::input
+} // namespace tu::input

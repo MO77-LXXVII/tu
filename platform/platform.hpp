@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <cassert>
 
-#include "../terminal_utils/logger.hpp"
+#include "../tu/logger.hpp"
 
-namespace terminal_utils::platform
+namespace tu::platform
 {
 
     /*
@@ -183,4 +183,4 @@ namespace terminal_utils::platform
         private:
             inline static bool m_active = false;
     };
-} // namespace terminal_utils::platform
+} // namespace tu::platform

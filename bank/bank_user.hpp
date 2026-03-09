@@ -7,10 +7,10 @@
 #include <cstdint>
  
 #include "person.hpp"
-#include "../terminal_utils/output.hpp"
-#include "../terminal_utils/config.hpp"
-#include "../terminal_utils/style_wrappers.hpp"
-#include "../terminal_utils/input.hpp"
+#include "../tu/output.hpp"
+#include "../tu/config.hpp"
+#include "../tu/style_wrappers.hpp"
+#include "../tu/input.hpp"
 #include "../platform/platform.hpp"
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
@@ -218,7 +218,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         /** @brief returns the file path for user records */
         [[nodiscard]] static std::string_view file_name()
         {
-            return terminal_utils::config::USERS_FILE_NAME;
+            return tu::config::USERS_FILE_NAME;
         }
 
 
@@ -237,7 +237,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                 ud[2],                                                                  // email
                 ud[3],                                                                  // phone
                 ud[4],                                                                  // username
-                utils::decrypt_text(ud[5], terminal_utils::config::CIPHER_SHIFT),       // password (decrypted)
+                utils::decrypt_text(ud[5], tu::config::CIPHER_SHIFT),       // password (decrypted)
                 static_cast<uint32_t>(std::stoi(ud[6]))                                 // permissions
             );
         }
@@ -251,7 +251,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                  + m_email                                                                 + std::string(SEPARATOR)
                  + m_phone_num                                                             + std::string(SEPARATOR)
                  + m_username                                                              + std::string(SEPARATOR)
-                 + utils::encrypt_text(m_password, terminal_utils::config::CIPHER_SHIFT)   + std::string(SEPARATOR)
+                 + utils::encrypt_text(m_password, tu::config::CIPHER_SHIFT)   + std::string(SEPARATOR)
                  + std::to_string(static_cast<uint32_t>(m_permissions));
         }
 
@@ -447,10 +447,10 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             for(Permission p : all_permissions)
             {
                 std::cout << "Should this user have access to [ "
-                          << underline(red(terminal_utils::bold(std::string(get_permission_name(p)))))
+                          << underline(red(tu::bold(std::string(get_permission_name(p)))))
                           << " ]? (y/n): ";
 
-                if(terminal_utils::input::get_yes_no(""))
+                if(tu::input::get_yes_no(""))
                     granted |= p;
             }
 
@@ -494,15 +494,15 @@ class BankUser : public PersistentEntity<BankUser>, public Person
          */
         bool login()
         {
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
 
             int attempts = 0;
             constexpr int MAX_ATTEMPTS = 3;
 
             while (true)
             {
-                std::string username = terminal_utils::input::get_string("Enter Username: ", "");
-                std::string password = terminal_utils::input::get_string("Enter Password: ", "");
+                std::string username = tu::input::get_string("Enter Username: ", "");
+                std::string password = tu::input::get_string("Enter Password: ", "");
 
                 auto result = find(username, password);
 
@@ -516,14 +516,14 @@ class BankUser : public PersistentEntity<BankUser>, public Person
 
                 if(attempts >= MAX_ATTEMPTS)
                 {
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << underline(bold(terminal_utils::red("Account locked, too many failed attempts\n")));
-                    terminal_utils::input::get_menu_key(terminal_utils::dim("Press Enter To Continue..."));
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
+                    std::cout << underline(bold(tu::red("Account locked, too many failed attempts\n")));
+                    tu::input::get_menu_key(tu::dim("Press Enter To Continue..."));
+                    tu::platform::clear_terminal();
                     return false;
                 }
 
-                std::cout << underline(bold(terminal_utils::red("\nInvalid Username/Password"))) << ", try again...\n\n";
+                std::cout << underline(bold(tu::red("\nInvalid Username/Password"))) << ", try again...\n\n";
             }
         }
 
@@ -543,12 +543,12 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         /** @brief prompts for a unique (non-existing) username */
         static std::string get_unique_username()
         {
-            std::string username = terminal_utils::input::get_string("Enter user username: ", "");
+            std::string username = tu::input::get_string("Enter user username: ", "");
 
             while (BankUser::exists(username))
             {
                 std::cout << "\nUsername already in use, choose another.\n";
-                username = terminal_utils::input::get_string("Enter user username: ", "");
+                username = tu::input::get_string("Enter user username: ", "");
             }
 
             return username;
@@ -558,12 +558,12 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         /** @brief prompts for an existing username, loops until valid */
         static std::string get_valid_username()
         {
-            std::string username = terminal_utils::input::get_string("Enter username: ", "");
+            std::string username = tu::input::get_string("Enter username: ", "");
 
             while (!BankUser::exists(username))
             {
                 std::cout << "\nNot a valid username.\n";
-                username = terminal_utils::input::get_string("Enter username: ", "");
+                username = tu::input::get_string("Enter username: ", "");
             }
 
             return username;
@@ -581,19 +581,19 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             std::cout << "\n---------------------\n";
 
             std::cout << "\nEnter First Name: ";
-            user.m_first_name = terminal_utils::input::get_string();
+            user.m_first_name = tu::input::get_string();
 
             std::cout << "\nEnter Last Name: ";
-            user.m_last_name = terminal_utils::input::get_string();
+            user.m_last_name = tu::input::get_string();
 
             std::cout << "\nEnter Email: ";
-            user.m_email = terminal_utils::input::get_string();
+            user.m_email = tu::input::get_string();
 
             std::cout << "\nEnter Phone: ";
-            user.m_phone_num = terminal_utils::input::get_string();
+            user.m_phone_num = tu::input::get_string();
 
             std::cout << "\nEnter Password: ";
-            user.m_password = terminal_utils::input::get_string();
+            user.m_password = tu::input::get_string();
 
             std::cout << "\nEnter Permissions: ";
             user.m_permissions = set_user_permission();
@@ -603,11 +603,11 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         /** @brief print this user's details as a formatted table */
         void print_user_details() const
         {
-            terminal_utils::output::Table table;
+            tu::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "username", "password", "permissions", "mode"});
             table.add_row({m_first_name, m_last_name, m_email, m_phone_num, m_username, m_password,
                            std::to_string(static_cast<uint32_t>(m_permissions)), std::string(mode_name(_mode))});
-            table.print(terminal_utils::output::Alignment::Center);
+            table.print(tu::output::Alignment::Center);
         }
 
 
@@ -622,7 +622,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
                 return;
             }
 
-            terminal_utils::output::Table table;
+            tu::output::Table table;
             table.add_row({"first_name", "last_name", "email", "phone_num", "username", "password", "permissions", "mode"});
 
             for(const BankUser& u : users)
@@ -633,9 +633,9 @@ class BankUser : public PersistentEntity<BankUser>, public Person
 
             const std::string label = "List of (" + std::to_string(users.size()) + ") User(s):";
             constexpr size_t  PADDING = 4;
-            std::cout << terminal_utils::output::print_aligned(label, label.size() + PADDING,
-                                                               terminal_utils::output::Alignment::Right) << "\n";
-            table.print(terminal_utils::output::Alignment::Center);
+            std::cout << tu::output::print_aligned(label, label.size() + PADDING,
+                                                               tu::output::Alignment::Right) << "\n";
+            table.print(tu::output::Alignment::Center);
         }
 
 
@@ -649,20 +649,20 @@ class BankUser : public PersistentEntity<BankUser>, public Person
         {
             BankUser user = BankUser::make_new(get_unique_username());
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             read_user_info(user, "Add User Info:");
 
             switch (user.save_with_result())
             {
                 case SaveResult::succeeded:
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "User added successfully:\n";
                     user.print_user_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " while saving the file.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " while saving the file.\n";
                     break;
             }
         }
@@ -676,7 +676,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
 
             BankUser user = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             user.print_user_details();
             read_user_info(user, "Update User Info:");
 
@@ -685,14 +685,14 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             switch (user.save_with_result())
             {
                 case SaveResult::succeeded:
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "User updated successfully:\n";
                     user.print_user_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " couldn't update the user.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " couldn't update the user.\n";
                     break;
             }
         }
@@ -707,10 +707,10 @@ class BankUser : public PersistentEntity<BankUser>, public Person
 
             BankUser user = *opt;
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             user.print_user_details();
 
-            if(!terminal_utils::input::get_yes_no("\n\nAre you sure you want to delete this user? (y/n):"))
+            if(!tu::input::get_yes_no("\n\nAre you sure you want to delete this user? (y/n):"))
             {
                 std::cout << "\nDelete operation canceled.\n";
                 return;
@@ -719,7 +719,7 @@ class BankUser : public PersistentEntity<BankUser>, public Person
             user.set_mode(Mode::delete_mode);
             user.save();
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             std::cout << "User (" << username << ") deleted successfully.\n";
         }
 };

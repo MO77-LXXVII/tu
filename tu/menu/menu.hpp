@@ -1,4 +1,4 @@
-// terminal_utils/menu.hpp
+// tu/menu.hpp
 #pragma once
 
 #include <string>
@@ -16,7 +16,7 @@
 #include "../../platform/platform.hpp"
 #include "../../utils/date.hpp"
 
-namespace terminal_utils
+namespace tu
 {
     /**
      * @brief Represents the result of a menu interaction.
@@ -437,7 +437,7 @@ namespace terminal_utils
      */
     inline void Menu::m_render_title() const
     {
-        using namespace terminal_utils;
+        using namespace tu;
 
         render_horizontal_border(m_width); // Top border
 
@@ -716,4 +716,4 @@ namespace terminal_utils
         m_render();
     }
 
-} // namespace terminal_utils
+} // namespace tu

@@ -7,20 +7,20 @@
 #include <string>
 
 #include "platform/platform.hpp"
-#include "terminal_utils/ansi_colours.hpp"
-#include "terminal_utils/style_wrappers.hpp"
-#include "terminal_utils/input.hpp"
-#include "terminal_utils/output.hpp"
-#include "terminal_utils/logger.hpp"
+#include "tu/ansi_colours.hpp"
+#include "tu/style_wrappers.hpp"
+#include "tu/input.hpp"
+#include "tu/output.hpp"
+#include "tu/logger.hpp"
 
-#include "terminal_utils/menu/menu.hpp"
-#include "terminal_utils/menu/menu_navigator.hpp"
+#include "tu/menu/menu.hpp"
+#include "tu/menu/menu_navigator.hpp"
 
 #include "bank/bank_client.hpp"
 #include "bank/bank_user.hpp"
 #include "bank/currency_exchange.hpp"
 
-namespace tu = terminal_utils;
+namespace tu = tu;
 // using namespace tu;
 
 using namespace std;
@@ -64,7 +64,7 @@ inline auto for_user(const BankUser& user)
 
 // void run_bank2()
 // {
-//     using namespace terminal_utils;
+//     using namespace tu;
 
 //     // Data
 //     // create dummy user
@@ -325,7 +325,7 @@ inline auto for_user(const BankUser& user)
 
 void run_bank()
 {
-    using namespace terminal_utils;
+    using namespace tu;
 
     BankUser bank_user{};
 
@@ -574,13 +574,13 @@ void run_bank_demo()
         {
             run_bank();
 
-            if(terminal_utils::input::get_yes_no("Want to quit the program? (y/n)"))
+            if(tu::input::get_yes_no("Want to quit the program? (y/n)"))
                 break;
         }
     }
 
     // the final message to be printed on the main buffer screen.
-    std::cout << italic(bold(terminal_utils::yellow("Bye User!"))) << std::endl;
+    std::cout << italic(bold(tu::yellow("Bye User!"))) << std::endl;
 
     LOG_INFO("Bank application shutting down");
 }

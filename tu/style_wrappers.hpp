@@ -1,10 +1,10 @@
-// terminal_utils/style_wrappers.hpp
+// tu/style_wrappers.hpp
 
 #pragma once
 
 #include "ansi_colours.hpp"
 
-namespace terminal_utils
+namespace tu
 {
     // ========================================================================
     // Colour factory functions
@@ -201,4 +201,4 @@ namespace terminal_utils
         base.add_style(Style::Strikethrough);
         return base;
     }
-} // namespace terminal_utils
+} // namespace tu

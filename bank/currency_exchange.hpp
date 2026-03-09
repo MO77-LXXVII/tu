@@ -6,10 +6,10 @@
 #include <limits>
 
 #include "person.hpp"
-#include "../terminal_utils/output.hpp"
-#include "../terminal_utils/config.hpp"
-#include "../terminal_utils/style_wrappers.hpp"
-#include "../terminal_utils/input.hpp"
+#include "../tu/output.hpp"
+#include "../tu/config.hpp"
+#include "../tu/style_wrappers.hpp"
+#include "../tu/input.hpp"
 #include "../platform/platform.hpp"
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
@@ -135,7 +135,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         /** @brief returns the file path for currency exchange records */
         [[nodiscard]] static std::string_view file_name()
         {
-            return terminal_utils::config::CURRENCY_EXCHANGE_FILE_NAME;
+            return tu::config::CURRENCY_EXCHANGE_FILE_NAME;
         }
 
 
@@ -290,7 +290,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             while(true)
             {
-                std::string currency_code = terminal_utils::input::get_string(msg, "");
+                std::string currency_code = tu::input::get_string(msg, "");
 
                 std::transform(currency_code.begin(), currency_code.end(), currency_code.begin(), [](unsigned char ch)
                 {
@@ -316,13 +316,13 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             std::cout << "\n---------------------\n";
 
             std::cout << "\nEnter Country Name: ";
-            currency.m_country = terminal_utils::input::get_string();
+            currency.m_country = tu::input::get_string();
 
             std::cout << "\nEnter the Country's Currency Name: ";
-            currency.m_currency_name = terminal_utils::input::get_string();
+            currency.m_currency_name = tu::input::get_string();
 
             std::cout << "\nEnter The Exchange Rate To USD: ";
-            currency.m_rate = terminal_utils::input::get_number<double>();
+            currency.m_rate = tu::input::get_number<double>();
         }
 
 
@@ -334,7 +334,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         static void read_new_currency_rate(CurrencyExchange& currency, std::string_view header)
         {
             std::cout << "\nEnter The New Exchange Rate To USD: ";
-            currency.m_rate = terminal_utils::input::get_number<double>();
+            currency.m_rate = tu::input::get_number<double>();
         }
 
 
@@ -350,7 +350,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
          */
         void print_currency_details(bool show_index = false, int index = 0) const
         {
-            terminal_utils::output::Table table;
+            tu::output::Table table;
 
             if(show_index)
             {
@@ -363,7 +363,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
                 table.add_row({m_country, m_currency_code, m_currency_name, std::to_string(m_rate)});
             }
 
-            table.print(terminal_utils::output::Alignment::Center);
+            table.print(tu::output::Alignment::Center);
         }
 
 
@@ -374,7 +374,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
          */
         static void print_currency_details(std::vector<CurrencyExchange> currencies_with_same_code, bool show_index = false)
         {
-            terminal_utils::output::Table table;
+            tu::output::Table table;
 
             if(show_index)
                 table.add_row({"Index", "Country", "Currency Code", "Currency Name", "Exchange Rate"});
@@ -393,8 +393,8 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             const std::string label = "List of (" + std::to_string(currencies_with_same_code.size()) + (currencies_with_same_code.size() == 1 ? ") currency:" : ") currencies:");
 
             constexpr size_t PADDING = 4;
-            std::cout << terminal_utils::output::print_aligned(label, label.size() + PADDING, terminal_utils::output::Alignment::Right) << "\n";
-            table.print(terminal_utils::output::Alignment::Center);
+            std::cout << tu::output::print_aligned(label, label.size() + PADDING, tu::output::Alignment::Right) << "\n";
+            table.print(tu::output::Alignment::Center);
         }
 
         /** @brief print all currency records in the system, or a message if none exist */
@@ -422,20 +422,20 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             CurrencyExchange user = CurrencyExchange::make_new(get_valid_currency_code());
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             read_currency_info(user, "Add Currency Data:");
 
             switch(user.save_with_result())
             {
                 case SaveResult::succeeded:
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "Currency data added successfully:\n";
                     user.print_currency_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " while saving the file.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " while saving the file.\n";
                     break;
             }
         }
@@ -454,7 +454,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             // multiple elements
             print_currency_details(matches, true);
 
-            const int choice = terminal_utils::input::get_number_in_range<int>(
+            const int choice = tu::input::get_number_in_range<int>(
                 "Choose which country: ", "Invalid option, try again: ", 1, matches.size());
 
             return matches[choice - 1];
@@ -466,10 +466,10 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
         {
             auto from_matches = CurrencyExchange::find_all(get_valid_currency_code());
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             CurrencyExchange selected = select_from_matches(*from_matches);
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             selected.print_currency_details();
             read_new_currency_rate(selected, "Add Currency Data:");
 
@@ -478,14 +478,14 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             switch(selected.save_with_result())
             {
                 case SaveResult::succeeded: // ignore IntelliSense false positive (error 2373)
-                    terminal_utils::platform::clear_terminal();
+                    tu::platform::clear_terminal();
                     std::cout << "currency data updated successfully:\n";
                     selected.print_currency_details();
                     break;
 
                 default:
-                    terminal_utils::platform::clear_terminal();
-                    std::cout << bold(underline(terminal_utils::red("An error occurred"))) << " couldn't update the currency data.\n";
+                    tu::platform::clear_terminal();
+                    std::cout << bold(underline(tu::red("An error occurred"))) << " couldn't update the currency data.\n";
                     break;
             }
         }
@@ -520,17 +520,17 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
             auto from_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert from: "));
             auto to_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert to: "));
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             CurrencyExchange source = select_from_matches(*from_matches);
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
             CurrencyExchange target = select_from_matches(*to_matches);
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
 
-            double input_amount = terminal_utils::input::get_number<double>("Enter amount to exchange: ", "Invalid number: ");
+            double input_amount = tu::input::get_number<double>("Enter amount to exchange: ", "Invalid number: ");
 
-            terminal_utils::platform::clear_terminal();
+            tu::platform::clear_terminal();
 
             const double result = target.from_USD(source.to_USD(input_amount));
 

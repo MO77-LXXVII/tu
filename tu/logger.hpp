@@ -242,7 +242,7 @@ namespace utils
             /** @brief constructs the `Logger` and opens the log file in *append mode* */
             Logger()
             {
-                _log_file.open(terminal_utils::config::LOG_FILE.data(), std::ios::app);
+                _log_file.open(tu::config::LOG_FILE.data(), std::ios::app);
             }
 
 
