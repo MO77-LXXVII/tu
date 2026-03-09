@@ -354,11 +354,13 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return TransferResult::success;
         }
 
-    // ----------------------------------------------------------
-    // Helpers
-    // ----------------------------------------------------------
-    public:
 
+        // =========================
+        //           UI
+        // =========================
+
+
+        /** @brief returns the string representation of a `Mode` value */
         [[nodiscard]] static constexpr std::string_view mode_name(Mode m) noexcept
         {
             switch(m)
@@ -371,12 +373,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             }
         }
 
-    // ----------------------------------------------------------
-    // UI: input
-    // ----------------------------------------------------------
-    public:
 
-        // Prompt for a unique(non-existing) account number
+        /** @brief prompts for a unique (non-existing) account number */
         static std::string get_unique_account_num()
         {
             std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
@@ -390,7 +388,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return account_num;
         }
 
-        // Prompt for an existing account number
+
+        /** @brief prompts for an existing account number, loops until valid */
         static std::string get_valid_account_num()
         {
             std::string account_num = terminal_utils::input::get_string("Enter client account number: ", "");
@@ -404,6 +403,12 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             return account_num;
         }
 
+
+        /**
+         * @brief prompts the user to fill in all fields of a `BankClient` object
+         * @param client the object to populate
+         * @param header header text to display above the input form
+         */
         static void read_client_info(BankClient& client, std::string_view header)
         {
             std::cout << "\n\n" << header;
@@ -428,11 +433,9 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             client.m_account_balance = terminal_utils::input::get_number<double>();
         }
 
-    // ----------------------------------------------------------
-    // UI: display
-    // ----------------------------------------------------------
-    public:
 
+        // ! --------------------------------------------------------------
+        /** @brief print this client's details as a formatted table */
         void print_client_details() const
         {
             terminal_utils::output::Table table;
@@ -442,6 +445,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             table.print(terminal_utils::output::Alignment::Center);
         }
 
+
+        /** @brief print all clients in the system, or a message if none exist */
         static void list_clients()
         {
             auto clients = load_all();
@@ -468,11 +473,13 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             table.print(terminal_utils::output::Alignment::Center);
         }
 
-    // ----------------------------------------------------------
-    // UI: CRUD actions
-    // ----------------------------------------------------------
-    public:
 
+        // =========================
+        //     UI: CRUD actions
+        // =========================
+
+
+        /** @brief prompt the user to add a new client and save it */
         static void add_client()
         {
             BankClient client = BankClient::make_new(get_unique_account_num());
@@ -495,6 +502,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             }
         }
 
+
+        /** @brief prompt the user to find and update an existing client */
         static void update_client()
         {
             auto opt = BankClient::find(get_valid_account_num());
@@ -523,6 +532,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             }
         }
 
+
+        /** @brief prompt the user to find and delete an existing client */
         static void delete_client()
         {
             std::string account_num = get_valid_account_num();
@@ -549,11 +560,13 @@ class BankClient : public PersistentEntity<BankClient>, public Person
             std::cout << "Account(" << account_num << ") deleted successfully.\n";
         }
 
-    // ----------------------------------------------------------
-    // UI: transactions
-    // ----------------------------------------------------------
-    public:
 
+        // =========================
+        //     UI: transactions
+        // =========================
+
+
+        /** @brief UI flow for depositing into a client's account */
         static void ui_deposit()
         {
             auto opt = BankClient::find(get_valid_account_num());
@@ -588,6 +601,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 std::cout << bold(underline(terminal_utils::red("Deposit failed.\n")));
         }
 
+
+        /** @brief UI flow for withdrawing from a client's account */
         static void ui_withdraw()
         {
             auto opt = BankClient::find(get_valid_account_num());
@@ -622,6 +637,8 @@ class BankClient : public PersistentEntity<BankClient>, public Person
                 std::cout << bold(underline(terminal_utils::red("Withdrawal failed.\n")));
         }
 
+
+        /** @brief UI flow for transferring between two client accounts */
         static void ui_transfer()
         {
             std::cout << "From account:\n";
