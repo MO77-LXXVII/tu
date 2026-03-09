@@ -101,7 +101,7 @@ namespace tu::platform
     // On Linux, we can't disable terminal's ANSI processing, but we can:
     // 1. Set a flag to track "disabled" state
     // 2. Send reset sequence to clear any active formatting
-    // only applies when using `ColouredText`
+    // only applies when using `ColoredText`
     // using raw ansi colour codes will still work
     bool disable_ansi()
     {
@@ -124,7 +124,7 @@ namespace tu::platform
             return false;
 
         // if user opted out don't enable ansi
-        if(!config::ENABLE_COLOURS)
+        if(!config::ENABLE_COLORS)
             return false;
 
         g_ansi_disabled = false;

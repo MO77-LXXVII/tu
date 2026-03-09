@@ -13,9 +13,9 @@ namespace tu::config
     inline constexpr std::string_view LOG_FILE = "logs/bank_app.log";
 
 
-    // Control terminal colouring
+    // Control terminal coloring
     /** @brief Enable ANSI colour codes in terminal output */
-    inline constexpr bool ENABLE_COLOURS = true;
+    inline constexpr bool ENABLE_COLORS = true;
 
 
     // Data files (relative to the demo)

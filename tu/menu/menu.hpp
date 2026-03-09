@@ -10,7 +10,7 @@
 
 #include "menu_item.hpp"
 #include "../input.hpp"
-#include "../ansi_colours.hpp"
+#include "../ansi_colors.hpp"
 #include "../style_wrappers.hpp"
 
 #include "../../platform/platform.hpp"
@@ -40,7 +40,7 @@ namespace tu
      /**
      * @brief a terminal menu with keyboard navigation, selectable items, and visual separators
      *
-     * supports building menus via a fluent interface, with configurable width, highlight colour,
+     * supports building menus via a fluent interface, with configurable width, highlight color,
      * title, subtitles, and an optional date display.
      * items can have dynamic visibility callbacks to show or hide them based on runtime conditions.
      *
@@ -136,13 +136,13 @@ namespace tu
 
 
             /**
-             * @brief sets the colour used to highlight the currently selected item
-             * @param colour the highlight colour (default: `Colour::Cyan`)
+             * @brief sets the color used to highlight the currently selected item
+             * @param color the highlight color (default: `Color::Cyan`)
              * @return reference to this `Menu` for chaining
              */
-            Menu& set_highlight_colour(Colour colour)
+            Menu& set_highlight_color(Color color)
             {
-                m_highlight_colour = colour;
+                m_highlight_color = color;
                 return *this;
             }
 
@@ -361,7 +361,7 @@ namespace tu
                     _items             - Menu options
                     m_selected_index    - Current selection
                     m_width             - Menu width
-                    m_highlight_colour  - Selection highlight color
+                    m_highlight_color  - Selection highlight color
                 =======================
             */
 
@@ -377,7 +377,7 @@ namespace tu
             std::vector<MenuItem> m_items;                               ///< list of menu items and separators
             int m_selected_index = -1;                                   ///< index of the currently selected item
             int m_width = config::DEFAULT_MENU_WIDTH;                    ///< total character width of the menu
-            Colour m_highlight_colour = Colour::Cyan;                    ///< colour used to highlight the selected item
+            Color m_highlight_color = Color::Cyan;                    ///< color used to highlight the selected item
     };
 
 
@@ -536,9 +536,9 @@ namespace tu
                 // 2. SELECTED VISIBLE ITEM: highlighted with cursor
                 else if(is_selected)
                 {
-                    // Render with highlight colour (e.g., Cyan)
+                    // Render with highlight color (e.g., Cyan)
                     // Uses "> " as selector + highlighted label
-                    std::cout << ColouredText(("> " + label), m_highlight_colour);
+                    std::cout << ColoredText(("> " + label), m_highlight_color);
                     std::cout << std::string(std::max(0, padding), ' ');
                 }
 

@@ -2,53 +2,53 @@
 
 #pragma once
 
-#include "ansi_colours.hpp"
+#include "ansi_colors.hpp"
 
 namespace tu
 {
     // ========================================================================
-    // Colour factory functions
+    // Color factory functions
     // ========================================================================
 
     // Initial creation from string (owns string)
-    [[nodiscard]] inline ColouredText red(std::string text)
+    [[nodiscard]] inline ColoredText red(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Red};
+        return ColoredText{std::move(text), Color::Red};
     }
 
-    [[nodiscard]] inline ColouredText green(std::string text)
+    [[nodiscard]] inline ColoredText green(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Green};
+        return ColoredText{std::move(text), Color::Green};
     }
 
-    [[nodiscard]] inline ColouredText blue(std::string text)
+    [[nodiscard]] inline ColoredText blue(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Blue};
+        return ColoredText{std::move(text), Color::Blue};
     }
 
-    [[nodiscard]] inline ColouredText cyan(std::string text)
+    [[nodiscard]] inline ColoredText cyan(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Cyan};
+        return ColoredText{std::move(text), Color::Cyan};
     }
 
-    [[nodiscard]] inline ColouredText magenta(std::string text)
+    [[nodiscard]] inline ColoredText magenta(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Magenta};
+        return ColoredText{std::move(text), Color::Magenta};
     }
 
-    [[nodiscard]] inline ColouredText yellow(std::string text)
+    [[nodiscard]] inline ColoredText yellow(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Yellow};
+        return ColoredText{std::move(text), Color::Yellow};
     }
 
-    [[nodiscard]] inline ColouredText white(std::string text)
+    [[nodiscard]] inline ColoredText white(std::string text)
     {
-        return ColouredText{std::move(text), Colour::White};
+        return ColoredText{std::move(text), Color::White};
     }
 
-    [[nodiscard]] inline ColouredText black(std::string text)
+    [[nodiscard]] inline ColoredText black(std::string text)
     {
-        return ColouredText{std::move(text), Colour::Black};
+        return ColoredText{std::move(text), Color::Black};
     }
 
     /*
@@ -56,51 +56,51 @@ namespace tu
         note: `base` is a function parameter, NRVO is excluded (C++ standard, [class.copy.elision])
             all functions in this section use implicit move on return
     */
-    [[nodiscard]] inline ColouredText red(ColouredText base)
+    [[nodiscard]] inline ColoredText red(ColoredText base)
     {
-        base.set_colour(Colour::Red);
+        base.set_color(Color::Red);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText green(ColouredText base)
+    [[nodiscard]] inline ColoredText green(ColoredText base)
     {
-        base.set_colour(Colour::Green);
+        base.set_color(Color::Green);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText blue(ColouredText base)
+    [[nodiscard]] inline ColoredText blue(ColoredText base)
     {
-        base.set_colour(Colour::Blue);
+        base.set_color(Color::Blue);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText cyan(ColouredText base)
+    [[nodiscard]] inline ColoredText cyan(ColoredText base)
     {
-        base.set_colour(Colour::Cyan);
+        base.set_color(Color::Cyan);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText magenta(ColouredText base)
+    [[nodiscard]] inline ColoredText magenta(ColoredText base)
     {
-        base.set_colour(Colour::Magenta);
+        base.set_color(Color::Magenta);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText yellow(ColouredText base)
+    [[nodiscard]] inline ColoredText yellow(ColoredText base)
     {
-        base.set_colour(Colour::Yellow);
+        base.set_color(Color::Yellow);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText white(ColouredText base)
+    [[nodiscard]] inline ColoredText white(ColoredText base)
     {
-        base.set_colour(Colour::White);
+        base.set_color(Color::White);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText black(ColouredText base)
+    [[nodiscard]] inline ColoredText black(ColoredText base)
     {
-        base.set_colour(Colour::Black);
+        base.set_color(Color::Black);
         return base;
     }
 
@@ -109,44 +109,44 @@ namespace tu
     // ========================================================================
 
     // Initial creation (owns string)
-    [[nodiscard]] inline ColouredText bold(std::string text)
+    [[nodiscard]] inline ColoredText bold(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Bold};
+        return ColoredText{std::move(text), Color::None, Style::Bold};
     }
 
-    [[nodiscard]] inline ColouredText dim(std::string text)
+    [[nodiscard]] inline ColoredText dim(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Dim};
+        return ColoredText{std::move(text), Color::None, Style::Dim};
     }
 
-    [[nodiscard]] inline ColouredText underline(std::string text)
+    [[nodiscard]] inline ColoredText underline(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Underline};
+        return ColoredText{std::move(text), Color::None, Style::Underline};
     }
 
-    [[nodiscard]] inline ColouredText italic(std::string text)
+    [[nodiscard]] inline ColoredText italic(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Italic};
+        return ColoredText{std::move(text), Color::None, Style::Italic};
     }
 
-    [[nodiscard]] inline ColouredText blink(std::string text)
+    [[nodiscard]] inline ColoredText blink(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Blink};
+        return ColoredText{std::move(text), Color::None, Style::Blink};
     }
 
-    [[nodiscard]] inline ColouredText reverse(std::string text)
+    [[nodiscard]] inline ColoredText reverse(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Reverse};
+        return ColoredText{std::move(text), Color::None, Style::Reverse};
     }
 
-    [[nodiscard]] inline ColouredText hidden(std::string text)
+    [[nodiscard]] inline ColoredText hidden(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Hidden};
+        return ColoredText{std::move(text), Color::None, Style::Hidden};
     }
 
-    [[nodiscard]] inline ColouredText strikethrough(std::string text)
+    [[nodiscard]] inline ColoredText strikethrough(std::string text)
     {
-        return ColouredText{std::move(text), Colour::None, Style::Strikethrough};
+        return ColoredText{std::move(text), Color::None, Style::Strikethrough};
     }
 
     /*
@@ -154,49 +154,49 @@ namespace tu
         note: `base` is a function parameter, NRVO is excluded (C++ standard, [class.copy.elision])
               all functions in this section use implicit move on return
     */
-    [[nodiscard]] inline ColouredText bold(ColouredText base)
+    [[nodiscard]] inline ColoredText bold(ColoredText base)
     {
         base.add_style(Style::Bold);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText dim(ColouredText base)
+    [[nodiscard]] inline ColoredText dim(ColoredText base)
     {
         base.add_style(Style::Dim);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText underline(ColouredText base)
+    [[nodiscard]] inline ColoredText underline(ColoredText base)
     {
         base.add_style(Style::Underline);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText italic(ColouredText base)
+    [[nodiscard]] inline ColoredText italic(ColoredText base)
     {
         base.add_style(Style::Italic);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText blink(ColouredText base)
+    [[nodiscard]] inline ColoredText blink(ColoredText base)
     {
         base.add_style(Style::Blink);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText reverse(ColouredText base)
+    [[nodiscard]] inline ColoredText reverse(ColoredText base)
     {
         base.add_style(Style::Reverse);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText hidden(ColouredText base)
+    [[nodiscard]] inline ColoredText hidden(ColoredText base)
     {
         base.add_style(Style::Hidden);
         return base;
     }
 
-    [[nodiscard]] inline ColouredText strikethrough(ColouredText base)
+    [[nodiscard]] inline ColoredText strikethrough(ColoredText base)
     {
         base.add_style(Style::Strikethrough);
         return base;

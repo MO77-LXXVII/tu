@@ -45,7 +45,7 @@ namespace tu::platform
         - restore_console_mode() resets attributes (\033[0m) and shows the cursor
         - restore_console_mode() additionally restores the original console mode on Windows
 
-        Result: No colour bleed into shell prompts on either platform
+        Result: No color bleed into shell prompts on either platform
     */
 
     /**

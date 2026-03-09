@@ -7,7 +7,7 @@
 #include <string>
 
 #include "platform/platform.hpp"
-#include "tu/ansi_colours.hpp"
+#include "tu/ansi_colors.hpp"
 #include "tu/style_wrappers.hpp"
 #include "tu/input.hpp"
 #include "tu/output.hpp"

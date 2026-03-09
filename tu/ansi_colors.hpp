@@ -1,4 +1,4 @@
-// ansi_colours.hpp
+// ansi_colors.hpp
 
 #pragma once
 
@@ -14,19 +14,19 @@
 namespace tu
 {
     /**
-     * @brief ANSI terminal colour codes for foreground text
+     * @brief ANSI terminal color codes for foreground text
      * 
      * These correspond to standard ANSI escape sequences for
-     * setting text colour in compatible terminals.
+     * setting text color in compatible terminals.
      *
-     * When `ENABLE_COLOURS` is true and terminal supports ANSI, these
-     * will be rendered as coloured text.
+     * When `ENABLE_COLORS` is true and terminal supports ANSI, these
+     * will be rendered as colored text.
      */
-    enum class Colour
+    enum class Color
     {
-        None,         ///< No colour change (use default)
-        Reset,        ///< Reset all attributes (colour, style, etc.)
-        ResetColour,  ///< Reset only colour, keep other styles
+        None,         ///< No color change (use default)
+        Reset,        ///< Reset all attributes (color, style, etc.)
+        ResetColor,  ///< Reset only color, keep other styles
         Black, Red, Green, Yellow, Blue, Magenta, Cyan, White
     };
 
@@ -132,29 +132,29 @@ namespace tu
 
 
     /**
-     * @brief small value object that bundles text with formatting metadata (colour + style)
+     * @brief small value object that bundles text with formatting metadata (color + style)
      * 
      * stores the text internally, so it does not depend on the caller's lifetime.
      * safe to store and render later without dangling reference concerns.
      */
-    class ColouredText
+    class ColoredText
     {
         public:
             /**
-             * @brief constructs a `ColouredText` with the given text and optional formatting
+             * @brief constructs a `ColoredText` with the given text and optional formatting
              * 
              * @param text   the text to display: ownership is taken via `std::move`
-             * @param colour foreground colour (default: `Colour::None`)
+             * @param color foreground color (default: `Color::None`)
              * @param style  text style bitmask (default: `Style::None`)
              */
-            ColouredText(std::string text, Colour colour = Colour::None, Style style = Style::None)
-                : _text(std::move(text)), _colour(colour), _style(style)
+            ColoredText(std::string text, Color color = Color::None, Style style = Style::None)
+                : _text(std::move(text)), _color(color), _style(style)
                 {}
 
-            /** @brief default constructor: initializes `_colour` to `Colour::None` and `_style` to `Style::None` */
-            ColouredText() = default;
+            /** @brief default constructor: initializes `_color` to `Color::None` and `_style` to `Style::None` */
+            ColoredText() = default;
 
-            friend std::ostream& operator<<(std::ostream& os, const ColouredText& ct);
+            friend std::ostream& operator<<(std::ostream& os, const ColoredText& ct);
 
             template<typename T>
             friend std::ostream& output::operator<<(std::ostream&, const output::Aligned<T>&);
@@ -172,61 +172,61 @@ namespace tu
 
 
             /**
-             * @brief set the text `colour`
+             * @brief set the text `color`
              * 
-             * @param `c` the `colour` to apply
+             * @param `c` the `color` to apply
              */
-            inline constexpr void set_colour(Colour c)
+            inline constexpr void set_color(Color c)
             {
-                _colour = c;
+                _color = c;
             }
 
 
         private:
             std::string _text;                ///< The actual text content to display
-            Colour _colour   = Colour::None;  ///< Current text colour (default: no colour)
+            Color _color   = Color::None;  ///< Current text color (default: no color)
             Style _style     = Style::None;   ///< Current text style flags (default: no styles)
 
             /**
-             * @brief returns the ANSI escape sequence string corresponding to a Colour enum
+             * @brief returns the ANSI escape sequence string corresponding to a Color enum
              * @note  returns `std::string_view` to string literals, which have static storage duration.
              *        this is safe because string literals live for the entire program lifetime.
              */
-            [[nodiscard]] static constexpr std::string_view get_colour_code(Colour c)
+            [[nodiscard]] static constexpr std::string_view get_color_code(Color c)
             {
                 switch(c)
                 {
-                    case Colour::None:
+                    case Color::None:
                         return "";
 
-                    case Colour::Reset:
+                    case Color::Reset:
                         return "\033[0m"; // the nuclear option.
 
-                    case Colour::ResetColour:
-                        return "\033[39m"; // resets colour only
+                    case Color::ResetColor:
+                        return "\033[39m"; // resets color only
 
-                    case Colour::Black:
+                    case Color::Black:
                         return "\033[30m";
 
-                    case Colour::Red:
+                    case Color::Red:
                         return "\033[31m";
 
-                    case Colour::Green:
+                    case Color::Green:
                         return "\033[32m";
 
-                    case Colour::Yellow:
+                    case Color::Yellow:
                         return "\033[33m";
 
-                    case Colour::Blue:
+                    case Color::Blue:
                         return "\033[34m";
 
-                    case Colour::Magenta:
+                    case Color::Magenta:
                         return "\033[35m";
 
-                    case Colour::Cyan:
+                    case Color::Cyan:
                         return "\033[36m";
 
-                    case Colour::White:
+                    case Color::White:
                         return "\033[37m";
 
                     default: // unreachable as all enum values are handled above (suppressing compiler warnings)
@@ -298,33 +298,33 @@ namespace tu
     };
 
     /**
-     * @brief stream insertion operator for `ColouredText`
+     * @brief stream insertion operator for `ColoredText`
      * 
-     * writes the text to `os` with ANSI colour and style codes applied,
+     * writes the text to `os` with ANSI color and style codes applied,
      * but only if `os` is `std::cout` or `std::cerr` and **ANSI is enabled**
      * 
      * @note always resets formatting after writing to avoid bleeding into subsequent output
      * 
      * @param os the output stream to write to
-     * @param ct the `ColouredText` object to render
+     * @param ct the `ColoredText` object to render
      * 
      * @return reference to `os` for chaining
      */
-    inline std::ostream& operator<<(std::ostream& os, const ColouredText& ct)
+    inline std::ostream& operator<<(std::ostream& os, const ColoredText& ct)
     {
         // Only colorize cout and cerr
-        const bool should_colourize = (&os == &std::cout || &os == &std::cerr) && config::ENABLE_COLOURS && platform::is_ansi_enabled();
+        const bool should_colorize = (&os == &std::cout || &os == &std::cerr) && config::ENABLE_COLORS && platform::is_ansi_enabled();
 
-        if(should_colourize)
+        if(should_colorize)
         {
-            ColouredText::apply_styles(os, ct._style);
-            os << ColouredText::get_colour_code(ct._colour);
+            ColoredText::apply_styles(os, ct._style);
+            os << ColoredText::get_color_code(ct._color);
         }
 
         os << ct._text;
 
-        if(should_colourize)
-            os << ColouredText::get_colour_code(Colour::Reset);
+        if(should_colorize)
+            os << ColoredText::get_color_code(Color::Reset);
 
         return os;
     }
@@ -334,22 +334,22 @@ namespace tu
     namespace output    
     {
         /**
-         * @brief template specialization of `operator<<` for `Aligned<ColouredText>`
+         * @brief template specialization of `operator<<` for `Aligned<ColoredText>`
          * 
-         * handles alignment padding correctly for `ColouredText` by using the raw
+         * handles alignment padding correctly for `ColoredText` by using the raw
          * text length (excluding ANSI escape codes) for padding calculations,
-         * then outputs the `ColouredText` with its ANSI codes intact.
+         * then outputs the `ColoredText` with its ANSI codes intact.
          * 
          * @note without this specialization, padding would be calculated correctly,
          * but if the generic version of `Aligned` tried to measure length through `operator<<`
          * it would include ANSI codes in the length calculation, making the padding wrong
          *
          * @param os the output stream to write to
-         * @param a  the `Aligned<ColouredText>` object containing alignment settings
+         * @param a  the `Aligned<ColoredText>` object containing alignment settings
          * @return reference to `os` for chaining
          */
         template<>
-        inline std::ostream& operator<<(std::ostream& os, const Aligned<ColouredText>& a)
+        inline std::ostream& operator<<(std::ostream& os, const Aligned<ColoredText>& a)
         {
             // FormatGuard restores stream flags and fill character on destruction (RAII)
             FormatGuard guard(os);
@@ -369,7 +369,7 @@ namespace tu
                 int right_pad = std::max(0, a.width - left_pad - static_cast<int>(text.length()));
 
                 os << std::string(left_pad, a.fill) 
-                << a.value  // Outputs text stored in ColouredText with ANSI codes
+                << a.value  // Outputs text stored in ColoredText with ANSI codes
                 << std::string(right_pad, a.fill);
             }
 

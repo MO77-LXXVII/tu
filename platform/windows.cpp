@@ -25,7 +25,7 @@ namespace tu::platform
         std::atomic_bool g_exiting = false;
 
         DWORD original_mode = 0;
-        WORD original_attributes = 0; // this stores original colours
+        WORD original_attributes = 0; // this stores original Colors
 
         /*
             Windows only:
@@ -155,7 +155,7 @@ namespace tu::platform
             return false;
 
         // if user opted out don't enable ansi
-        if(!config::ENABLE_COLOURS)
+        if(!config::ENABLE_COLORS)
             return false;
 
         HANDLE h_out = get_stdout_handle();
@@ -267,7 +267,7 @@ namespace tu::platform
         // Enable ANSI support (good to enforce on Windows)
         static_cast<void>(enable_ansi());
 
-        // Failure is non-fatal: app continues without coloured output
+        // Failure is non-fatal: app continues without Colored output
         return true;
     }
 
