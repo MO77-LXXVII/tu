@@ -8,10 +8,10 @@
 
     ?MOTIVATION:
     BankClient, BankUser, and CurrencyExchange share identical logic:
-      - File I/O (reading and writing)
-      - Line parsing and encoding
-      - save() with mode switching
-      - load_all(), find(), exists(), remove()
+    - File I/O (reading and writing)
+    - Line parsing and encoding
+    - save() with mode switching
+    - load_all(), find(), exists(), remove()
 
     An alternative approach using a virtual Interface would incur runtime
     overhead; CRTP avoids this entirely by resolving all dispatch at compile time.
@@ -22,11 +22,11 @@
     
     each derived class implements only the parts
     specific to its type:
-      - encode()       -> serialize this object to a line
-      - decode()       -> parses a line into this object
-      - file_name()    -> which file to read/write
-      - key()          -> unique identifier (e.g. account number)
-      - matches_key()  -> how to compare keys
+    - encode()       -> serialize this object to a line
+    - decode()       -> parses a line into this object
+    - file_name()    -> which file to read/write
+    - key()          -> unique identifier (e.g. account number)
+    - matches_key()  -> how to compare keys
 
     the base handles everything else automatically.
 
@@ -66,230 +66,233 @@ static constexpr std::string_view SEPARATOR = "#//#";
 //    CRTP Base: all shared persistence logic lives here
 // ============================================================
 
-template<typename Derived>
-class PersistentEntity
+namespace bank
 {
-    public:
-        /**
-         * @brief controls the behaviour of `save()`
-         * 
-         * - `empty_mode`:  no-op, `save()` does nothing
-         * 
-         * - `add_mode`:    appends this record to the file
-         * 
-         * - `update_mode`: overwrites the matching record in the file
-         * 
-         * - `delete_mode`: removes the matching record from the file
-         */
-        enum class Mode { empty_mode, add_mode, update_mode, delete_mode };
+    template<typename Derived>
+    class PersistentEntity
+    {
+        public:
+            /**
+             * @brief controls the behaviour of `save()`
+             * 
+             * - `empty_mode`:  no-op, `save()` does nothing
+             * 
+             * - `add_mode`:    appends this record to the file
+             * 
+             * - `update_mode`: overwrites the matching record in the file
+             * 
+             * - `delete_mode`: removes the matching record from the file
+             */
+            enum class Mode { empty_mode, add_mode, update_mode, delete_mode };
 
 
-        // =========================
-        //       Public API 
-        // =========================
+            // =========================
+            //       Public API 
+            // =========================
 
-        /**
-         * @brief load all records from the entity's file
-         * @return `const` reference to the cached records, empty vector if the file cannot be opened
-         * @note calls `Derived::file_name()` and `Derived::decode()` internally
-         * 
-         * @warning the returned reference is only valid until the next mutating operation (`add()`, `update()`, `delete()`)
-         * do not store this reference; iterate or copy immediately
-         */
-        [[nodiscard]] static const std::vector<Derived>& load_all()
-        {
-            // Uses cached data now
-            return FileCache<Derived>::load();
-        }
-
-
-        /**
-         * @brief  find a single record by `key`
-         * @param  key the unique identifier to search for
-         * @return the matching record, or `std::nullopt` if not found
-         * @note   calls `Derived::matches_key()` to compare
-         */
-        [[nodiscard]] static std::optional<Derived> find(const std::string& key)
-        {
-            for(const auto& record : load_all())
-                if(record.matches_key(key))
-                    return record;
-
-            return std::nullopt;
-        }
-
-
-        /**
-         * @brief check if a record with the given key exists
-         * @param key the unique identifier to search for
-         * @return `true` if found, `false` otherwise
-         */
-        [[nodiscard]] static bool exists(const std::string& key)
-        {
-            return find(key).has_value();
-        }
-
-
-        /**
-         * @brief persist this record according to its current `Mode`
-         * 
-         * - `add_mode`    → appends this record
-         * - `update_mode` → overwrites the matching record
-         * - `delete_mode` → removes the matching record
-         * - `empty_mode`  → no-op
-         * 
-         * @return `true` on success, `false` on I/O failure
-         * @see set_mode()
-         */
-        bool save()
-        {
-            switch (_mode)
+            /**
+             * @brief load all records from the entity's file
+             * @return `const` reference to the cached records, empty vector if the file cannot be opened
+             * @note calls `Derived::file_name()` and `Derived::decode()` internally
+             * 
+             * @warning the returned reference is only valid until the next mutating operation (`add()`, `update()`, `delete()`)
+             * do not store this reference; iterate or copy immediately
+             */
+            [[nodiscard]] static const std::vector<Derived>& load_all()
             {
-                case Mode::add_mode:    return m_add();
-                case Mode::update_mode: return m_update();
-                case Mode::delete_mode: return m_remove();
-                case Mode::empty_mode:  return true;
+                // Uses cached data now
+                return FileCache<Derived>::load();
             }
-            return false;
-        }
 
 
-        /**
-         * @brief set the persistence mode of this record
-         * @param mode the `Mode` to apply on the next `save()` call
-         * @return reference to the derived object (allows chaining)
-         * @note usage: `entity.set_mode(Mode::update_mode).save()`
-         */
-        Derived& set_mode(Mode mode)
-        {
-            _mode = mode;
-            return self();
-        }
-
-
-        /** @brief returns the current persistence `Mode` of this record */
-        [[nodiscard]] Mode mode() const noexcept { return _mode; }
-
-
-        /** @brief returns `true` if this record has no pending persistence operation */
-        [[nodiscard]] bool is_empty() const noexcept
-        {
-            return _mode == Mode::empty_mode;
-        }
-
-
-    protected:
-        Mode _mode = Mode::empty_mode; ///< current persistence mode, determines behaviour of `save()`
-
-
-        /**
-         * @brief protected constructor derived classes set the initial mode
-         * @param mode initial `Mode`, defaults to `empty_mode`
-         */
-        explicit PersistentEntity(Mode mode = Mode::empty_mode): _mode(mode) {}
-
-
-    private:
-        // =========================
-        //     Internal helpers
-        // =========================
-
-
-        /** @brief downcast `this` to the derived type for CRTP dispatch */
-        Derived& self()
-        {
-            return static_cast<Derived&>(*this);
-        }
-
-
-        /** @brief const overload of `self()` for use in const member functions */
-        const Derived& self() const
-        {
-            return static_cast<const Derived&>(*this);
-        }
-
-
-        /**
-         * @brief   sort and write all records to the entity's file, overwriting existing content
-         * @param   records the records to write
-         * @return  `true` on success, `false` if the file cannot be opened or a write fails
-         * @note    non-const: Derived::sort() mutates records before writing
-         */
-        static bool m_write_all(std::vector<Derived>& records)
-        {
-            Derived::sort(records);
-
-            // cache will be invalid after editing the file
-            FileCache<Derived>::invalidate();
-
-            std::ofstream file(Derived::file_name().data(), std::ios::trunc);
-
-            if(!file.is_open())
-                return false;
-
-            for(const Derived& r : records)
+            /**
+             * @brief  find a single record by `key`
+             * @param  key the unique identifier to search for
+             * @return the matching record, or `std::nullopt` if not found
+             * @note   calls `Derived::matches_key()` to compare
+             */
+            [[nodiscard]] static std::optional<Derived> find(const std::string& key)
             {
-                file << r.encode() << "\n";
+                for(const auto& record : load_all())
+                    if(record.matches_key(key))
+                        return record;
 
-                if(!file.good())
-                    return false;
+                return std::nullopt;
             }
-            return true;
-        }
 
 
-        /** @brief append this record to the file */
-        bool m_add()
-        {
-            auto records = load_all();
+            /**
+             * @brief check if a record with the given key exists
+             * @param key the unique identifier to search for
+             * @return `true` if found, `false` otherwise
+             */
+            [[nodiscard]] static bool exists(const std::string& key)
+            {
+                return find(key).has_value();
+            }
 
-            records.push_back(self());
 
-            return m_write_all(records);
-        }
-
-
-        /** @brief overwrite the matching record in the file with this object's current state */
-        bool m_update()
-        {
-            auto records = load_all();
-
-            for (Derived& r : records)
-                if(r.matches_key(self().key()))
+            /**
+             * @brief persist this record according to its current `Mode`
+             * 
+             * - `add_mode`    → appends this record
+             * - `update_mode` → overwrites the matching record
+             * - `delete_mode` → removes the matching record
+             * - `empty_mode`  → no-op
+             * 
+             * @return `true` on success, `false` on I/O failure
+             * @see set_mode()
+             */
+            bool save()
+            {
+                switch (_mode)
                 {
-                    r        = self();
-                    r._mode  = Mode::update_mode;
-                    break;
+                    case Mode::add_mode:    return m_add();
+                    case Mode::update_mode: return m_update();
+                    case Mode::delete_mode: return m_remove();
+                    case Mode::empty_mode:  return true;
                 }
+                return false;
+            }
 
-            return m_write_all(records);
-        }
+
+            /**
+             * @brief set the persistence mode of this record
+             * @param mode the `Mode` to apply on the next `save()` call
+             * @return reference to the derived object (allows chaining)
+             * @note usage: `entity.set_mode(Mode::update_mode).save()`
+             */
+            Derived& set_mode(Mode mode)
+            {
+                _mode = mode;
+                return self();
+            }
 
 
-        /** @brief remove the matching record from the file */
-        bool m_remove()
-        {
-            auto records = load_all();
+            /** @brief returns the current persistence `Mode` of this record */
+            [[nodiscard]] Mode mode() const noexcept { return _mode; }
 
-            records.erase(
-                std::remove_if(records.begin(), records.end(), [&](const Derived& r)
+
+            /** @brief returns `true` if this record has no pending persistence operation */
+            [[nodiscard]] bool is_empty() const noexcept
+            {
+                return _mode == Mode::empty_mode;
+            }
+
+
+        protected:
+            Mode _mode = Mode::empty_mode; ///< current persistence mode, determines behaviour of `save()`
+
+
+            /**
+             * @brief protected constructor derived classes set the initial mode
+             * @param mode initial `Mode`, defaults to `empty_mode`
+             */
+            explicit PersistentEntity(Mode mode = Mode::empty_mode): _mode(mode) {}
+
+
+        private:
+            // =========================
+            //     Internal helpers
+            // =========================
+
+
+            /** @brief downcast `this` to the derived type for CRTP dispatch */
+            Derived& self()
+            {
+                return static_cast<Derived&>(*this);
+            }
+
+
+            /** @brief const overload of `self()` for use in const member functions */
+            const Derived& self() const
+            {
+                return static_cast<const Derived&>(*this);
+            }
+
+
+            /**
+             * @brief   sort and write all records to the entity's file, overwriting existing content
+             * @param   records the records to write
+             * @return  `true` on success, `false` if the file cannot be opened or a write fails
+             * @note    non-const: Derived::sort() mutates records before writing
+             */
+            static bool m_write_all(std::vector<Derived>& records)
+            {
+                Derived::sort(records);
+
+                // cache will be invalid after editing the file
+                FileCache<Derived>::invalidate();
+
+                std::ofstream file(Derived::file_name().data(), std::ios::trunc);
+
+                if(!file.is_open())
+                    return false;
+
+                for(const Derived& r : records)
                 {
-                    return r.matches_key(self().key());
-                }),
-                records.end()
-            );
+                    file << r.encode() << "\n";
 
-            return m_write_all(records);
-        }
-};
+                    if(!file.good())
+                        return false;
+                }
+                return true;
+            }
 
-// ============================================================
-// What each Derived class MUST implement:
-//
-//   static std::string_view file_name()         → file path
-//   static Derived decode(const std::string&)   → parse line        → object
-//   std::string encode() const                  → convert object    → line
-//   std::string key() const                     → unique identifier
-//   bool matches_key(const std::string&) const  → comparison
-//   static void sort(std::vector<Derived>&)     → custom sort before write
-// ============================================================
+
+            /** @brief append this record to the file */
+            bool m_add()
+            {
+                auto records = load_all();
+
+                records.push_back(self());
+
+                return m_write_all(records);
+            }
+
+
+            /** @brief overwrite the matching record in the file with this object's current state */
+            bool m_update()
+            {
+                auto records = load_all();
+
+                for (Derived& r : records)
+                    if(r.matches_key(self().key()))
+                    {
+                        r        = self();
+                        r._mode  = Mode::update_mode;
+                        break;
+                    }
+
+                return m_write_all(records);
+            }
+
+
+            /** @brief remove the matching record from the file */
+            bool m_remove()
+            {
+                auto records = load_all();
+
+                records.erase(
+                    std::remove_if(records.begin(), records.end(), [&](const Derived& r)
+                    {
+                        return r.matches_key(self().key());
+                    }),
+                    records.end()
+                );
+
+                return m_write_all(records);
+            }
+    };
+
+    // ============================================================
+    // What each Derived class MUST implement:
+    //
+    //   static std::string_view file_name()         → file path
+    //   static Derived decode(const std::string&)   → parse line        → object
+    //   std::string encode() const                  → convert object    → line
+    //   std::string key() const                     → unique identifier
+    //   bool matches_key(const std::string&) const  → comparison
+    //   static void sort(std::vector<Derived>&)     → custom sort before write
+    // ============================================================
+} // namespace bank
