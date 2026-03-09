@@ -346,7 +346,7 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
          */
         static void read_new_currency_rate(CurrencyExchange& currency, std::string_view header)
         {
-            std::cout << "\nEnter The Exchange Rate To USD: ";
+            std::cout << "\nEnter The New Exchange Rate To USD: ";
             currency.m_rate = terminal_utils::input::get_number<double>();
         }
 
@@ -481,6 +481,10 @@ class CurrencyExchange: public PersistentEntity<CurrencyExchange>
 
             terminal_utils::platform::clear_terminal();
             CurrencyExchange selected = select_from_matches(*from_matches);
+
+            terminal_utils::platform::clear_terminal();
+            selected.print_currency_details();
+            read_new_currency_rate(selected, "Add Currency Data:");
 
             selected.set_mode(Mode::update_mode);
 
