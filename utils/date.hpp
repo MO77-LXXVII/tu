@@ -7,6 +7,7 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include <chrono>
 #include <algorithm>
 
 #include "../tu/output.hpp"
@@ -77,6 +78,7 @@ namespace utils
                         return Date(year, month, day);
                 }
 
+
                 // Try "YYYY-MM-DD"
                 if(str.find('-') != std::string_view::npos)
                 {
@@ -91,6 +93,7 @@ namespace utils
                 return Date(); // Invalid format -> epoch
             }
 
+
             [[nodiscard]] static Date today() noexcept
             {
                 std::time_t now = std::time(nullptr);
@@ -102,6 +105,7 @@ namespace utils
                     local->tm_mday
                 );
             }
+
 
             // day N of year
             // converts a day position inside a year into an actual calendar date.
@@ -126,10 +130,12 @@ namespace utils
                 return d;
             }
 
+
             [[nodiscard]] Date from_ordinal_date(int day_index_in_year) const noexcept
             {
                 return from_ordinal_date(this->_year, day_index_in_year);
             }
+
 
             [[nodiscard]] static int total_days_from_the_begininng_of_the_year(const Date& d) noexcept
             {
@@ -141,12 +147,26 @@ namespace utils
                 return (total_days + d._day);
             }
 
+
             [[nodiscard]] int total_days_from_the_begininng_of_the_year() const noexcept
             {
                 return total_days_from_the_begininng_of_the_year(*this);
             }
 
 
+            /**
+             * @brief returns the current date and time as a formatted timestamp string
+             * @return e.g. "2000-01-01 12:00:00"
+             */
+            [[nodiscard]] static std::string timestamp() noexcept
+            {
+                auto now  = std::chrono::system_clock::now();
+                auto time = std::chrono::system_clock::to_time_t(now);
+
+                std::ostringstream oss;
+                oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
+                return oss.str();
+            }
 
 
 

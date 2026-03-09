@@ -10,6 +10,7 @@
 #include <sstream>
 
 #include "config.hpp"
+#include "../utils/date.hpp"
 
 namespace utils
 {
@@ -267,16 +268,9 @@ namespace utils
             {
                 std::ostringstream oss;
 
-                // Timestamp
-                auto now = std::chrono::system_clock::now();
-                auto time = std::chrono::system_clock::to_time_t(now);
-                oss << std::put_time(std::localtime(&time), "%Y-%m-%d %H:%M:%S");
-
-                // Level
-                oss << " [" << level_to_string(level) << "]: ";
-
-                // Message
-                oss << message;
+                oss << utils::Date::timestamp()
+                    << " [" << level_to_string(level) << "]: "
+                    << message;
 
                 return oss.str();
             }
