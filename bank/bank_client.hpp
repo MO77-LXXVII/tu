@@ -141,8 +141,15 @@ namespace bank
              * @param account_number unique account identifier for the new client
              * @note caller fills in the remaining fields via `read_client_info()`
              */
-            static BankClient make_new(std::string account_number)
+            static BankClient make_new()
             {
+                std::string account_number;
+                while(true)
+                {
+                    account_number = utils::generate_key(utils::char_type::mixed_chars);
+                    if(!BankClient::exists(account_number))
+                        break;
+                }
                 return BankClient(Mode::add_mode, "", "", "", "", std::move(account_number), "", 0.0);
             }
 
@@ -469,7 +476,7 @@ namespace bank
             /** @brief prompt the user to add a new client and save it */
             static void add_client()
             {
-                BankClient client = BankClient::make_new(get_unique_account_num());
+                BankClient client = BankClient::make_new();
 
                 tu::platform::clear_terminal();
                 read_client_info(client, "Add Client Info:");
