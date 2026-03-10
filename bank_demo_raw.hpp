@@ -17,9 +17,10 @@
 #include "tu/logger.hpp"
 #include "tu/menu/menu.hpp"
 
-#include "bank/bank_client.hpp"
-#include "bank/bank_user.hpp"
-#include "bank/currency_exchange.hpp"
+#include "bank/entities/bank_client.hpp"
+#include "bank/entities/bank_user.hpp"
+#include "bank/services/currency_exchange.hpp"
+
 
 namespace
 {

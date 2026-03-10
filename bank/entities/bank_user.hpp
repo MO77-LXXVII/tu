@@ -7,14 +7,11 @@
 #include <cstdint>
 
 #include "person.hpp"
-#include "../tu/output.hpp"
-#include "../tu/config.hpp"
-#include "../tu/style_wrappers.hpp"
-#include "../tu/input.hpp"
-#include "../platform/platform.hpp"
-#include "../utils/string_utils.hpp"
-#include "../utils/utils.hpp"
-#include "bank/persistent_entity.hpp"
+#include "../../tu/tu.hpp"
+#include "../../platform/platform.hpp"
+#include "../../utils/string_utils.hpp"
+#include "../../utils/utils.hpp"
+#include "../persistence/persistent_entity.hpp"
 
 namespace bank
 {

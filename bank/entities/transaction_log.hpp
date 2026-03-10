@@ -6,9 +6,9 @@
 #include <optional>
 #include <algorithm>
 
-#include "../tu/config.hpp"
-#include "../utils/date.hpp"
-#include "persistent_entity.hpp"
+#include "../../tu/config.hpp"
+#include "../../utils/date.hpp"
+#include "../persistence/persistent_entity.hpp"
 
 namespace bank
 {

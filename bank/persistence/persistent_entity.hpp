@@ -55,9 +55,9 @@
 #include <optional>
 #include <algorithm>
 
-#include "../utils/string_utils.hpp"
-#include "../utils/utils.hpp"
-#include "../tu/config.hpp"
+#include "../../utils/string_utils.hpp"
+#include "../../utils/utils.hpp"
+#include "../../tu/config.hpp"
 #include "file_cache.hpp"  
 
 static constexpr std::string_view SEPARATOR = "#//#";
