@@ -176,7 +176,7 @@ namespace bank
 
                 // `stable_sort()` preserves the relative order of records with equal rates,
                 // allowing users to rely on consistent ordering between saves
-                std::stable_sort(records.begin(), records.end(), [](const CurrencyExchange& a, const CurrencyExchange& b)
+                std::stable_sort(records.begin(), records.end(), [epsilon](const CurrencyExchange& a, const CurrencyExchange& b)
                 {
                     double diff = a.m_rate - b.m_rate;
 
