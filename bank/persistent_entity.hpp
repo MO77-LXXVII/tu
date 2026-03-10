@@ -101,6 +101,17 @@ namespace bank
 
 
             /**
+            * @brief returns true if any of the given fields contain the separator sequence
+            * @note pass all encoded string fields to guard against file corruption before saving
+            */
+            template<typename... Fields>
+            [[nodiscard]] static bool any_field_corrupt(const Fields&... fields) noexcept
+            {
+                return (contains_separator(fields) || ...);
+            }
+
+
+            /**
              * @brief load all records from the entity's file
              * @return `const` reference to the cached records, empty vector if the file cannot be opened
              * @note calls `Derived::file_name()` and `Derived::decode()` internally

@@ -330,22 +330,6 @@ namespace bank
             //         Helpers
             // =========================
 
-
-            /**
-             * @brief returns true if any field contains the separator sequence
-             * @note used to guard against file corruption before saving
-             */
-            [[nodiscard]] bool has_corrupt_fields() const noexcept
-            {
-                return contains_separator(m_first_name)
-                    || contains_separator(m_last_name)
-                    || contains_separator(m_password)
-                    || contains_separator(m_phone_num)
-                    || contains_separator(m_username)
-                    || contains_separator(m_email);
-            }
-
-
             /**
              * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
              * @return `SaveResult` indicating success or the exact failure reason
@@ -356,7 +340,7 @@ namespace bank
                 if(is_empty())
                     return SaveResult::failed_empty_object;
 
-                if(has_corrupt_fields())
+                if(any_field_corrupt(m_first_name, m_last_name, m_email, m_phone_num, m_username, m_password))
                     return SaveResult::failed_invalid_fields;
 
                 if(_mode == Mode::add_mode && BankUser::exists(m_username))
