@@ -274,19 +274,23 @@ namespace bank
              * @param currency the object to populate
              * @param header   header text to display above the input form
              */
-            static void read_currency_info(CurrencyExchange& currency, std::string_view header)
+            static bool read_currency_info(CurrencyExchange& currency, std::string_view header)
             {
+                tu::platform::clear_terminal();
                 std::cout << "\n\n" << header;
                 std::cout << "\n---------------------\n";
+                std::cout << "(press Enter to cancel)\n";
 
-                std::cout << "\nEnter Country Name: ";
-                currency.m_country = tu::input::get_string();
+                auto country  = tu::input::get_line("\nEnter Country Name: ",              "", true); if(!country)  return false;
+                auto cur_name = tu::input::get_line("\nEnter the Country's Currency Name: ","", true); if(!cur_name) return false;
 
-                std::cout << "\nEnter the Country's Currency Name: ";
-                currency.m_currency_name = tu::input::get_string();
+                currency.m_country       = std::move(*country);
+                currency.m_currency_name = std::move(*cur_name);
 
                 std::cout << "\nEnter The Exchange Rate To USD: ";
                 currency.m_rate = tu::input::get_number<double>();
+
+                return true;
             }
 
 
@@ -384,17 +388,21 @@ namespace bank
             /** @brief prompt the user to add a new currency entry and save it */
             static void add_currency()
             {
-                CurrencyExchange user = CurrencyExchange::make_new(get_valid_currency_code());
+                CurrencyExchange currency = CurrencyExchange::make_new(get_valid_currency_code());
 
                 tu::platform::clear_terminal();
-                read_currency_info(user, "Add Currency Data:");
+                if(!read_currency_info(currency, "Add Currency Data:"))
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
-                switch(user.save_with_result())
+                switch(currency.save_with_result())
                 {
                     case SaveResult::succeeded:
                         tu::platform::clear_terminal();
                         std::cout << "Currency data added successfully:\n";
-                        user.print_currency_details();
+                        currency.print_currency_details();
                         break;
                                         
                     case SaveResult::failed_invalid_fields:

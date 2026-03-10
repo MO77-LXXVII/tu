@@ -430,28 +430,28 @@ namespace bank
              * @param client the object to populate
              * @param header header text to display above the input form
              */
-            static void read_client_info(BankClient& client, std::string_view header)
+            static bool read_client_info(BankClient& client, std::string_view header)
             {
                 std::cout << "\n\n" << header;
                 std::cout << "\n---------------------\n";
+                std::cout << "(press Enter to cancel)\n";
 
-                std::cout << "\nEnter First Name: ";
-                client.m_first_name = tu::input::get_string();
+                auto first = tu::input::get_line("\nEnter First Name: ", "", true); if(!first) return false;
+                auto last  = tu::input::get_line("\nEnter Last Name: ",  "", true); if(!last)  return false;
+                auto email = tu::input::get_line("\nEnter Email: ",      "", true); if(!email) return false;
+                auto phone = tu::input::get_line("\nEnter Phone: ",      "", true); if(!phone) return false;
+                auto pin   = tu::input::get_line("\nEnter Pin Code: ",   "", true); if(!pin)   return false;
 
-                std::cout << "\nEnter Last Name: ";
-                client.m_last_name = tu::input::get_string();
-
-                std::cout << "\nEnter Email: ";
-                client.m_email = tu::input::get_string();
-
-                std::cout << "\nEnter Phone: ";
-                client.m_phone_num = tu::input::get_string();
-
-                std::cout << "\nEnter Pin Code: ";
-                client.m_pin_code = tu::input::get_string();
+                client.m_first_name = std::move(*first);
+                client.m_last_name  = std::move(*last);
+                client.m_email      = std::move(*email);
+                client.m_phone_num  = std::move(*phone);
+                client.m_pin_code   = std::move(*pin);
 
                 std::cout << "\nEnter Account Balance: ";
                 client.m_account_balance = tu::input::get_number<double>();
+
+                return true;
             }
 
 
@@ -506,7 +506,11 @@ namespace bank
                 BankClient client = BankClient::make_new();
 
                 tu::platform::clear_terminal();
-                read_client_info(client, "Add Client Info:");
+                if(!read_client_info(client, "Add Client Info:"))
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
                 switch(client.save_with_result())
                 {
@@ -538,7 +542,11 @@ namespace bank
 
                 tu::platform::clear_terminal();
                 client.print_client_details();
-                read_client_info(client, "Update Client Info:");
+                if(!read_client_info(client, "Update Client Info:"))
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
                 client.set_mode(Mode::update_mode);
 
@@ -605,6 +613,12 @@ namespace bank
 
                 tu::platform::clear_terminal();
                 client.print_client_details();
+
+                if(client.m_account_balance >= tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
+                {
+                    std::cout << tu::red("Account has reached the maximum allowed balance\n");
+                    return;
+                }
 
                 double amount = tu::input::get_number_in_range<double>(
                     "Enter amount to deposit: ",

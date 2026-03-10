@@ -570,28 +570,27 @@ namespace bank
              * @param user   the object to populate
              * @param header header text to display above the input form
              */
-            static void read_user_info(BankUser& user, std::string_view header)
+            static bool read_user_info(BankUser& user, std::string_view header)
             {
+                // tu::platform::clear_terminal();
                 std::cout << "\n\n" << header;
                 std::cout << "\n---------------------\n";
+                std::cout << "(press Enter to cancel)\n";
 
-                std::cout << "\nEnter First Name: ";
-                user.m_first_name = tu::input::get_string();
+                auto first = tu::input::get_line("\nEnter First Name: ", "", true); if(!first) return false;
+                auto last  = tu::input::get_line("\nEnter Last Name: ",  "", true); if(!last)  return false;
+                auto email = tu::input::get_line("\nEnter Email: ",      "", true); if(!email) return false;
+                auto phone = tu::input::get_line("\nEnter Phone: ",      "", true); if(!phone) return false;
+                auto pass  = tu::input::get_line("\nEnter Password: ",   "", true); if(!pass)  return false;
 
-                std::cout << "\nEnter Last Name: ";
-                user.m_last_name = tu::input::get_string();
-
-                std::cout << "\nEnter Email: ";
-                user.m_email = tu::input::get_string();
-
-                std::cout << "\nEnter Phone: ";
-                user.m_phone_num = tu::input::get_string();
-
-                std::cout << "\nEnter Password: ";
-                user.m_password = tu::input::get_string();
-
-                std::cout << "\nEnter Permissions: ";
+                user.m_first_name  = std::move(*first);
+                user.m_last_name   = std::move(*last);
+                user.m_email       = std::move(*email);
+                user.m_phone_num   = std::move(*phone);
+                user.m_password    = std::move(*pass);
                 user.m_permissions = set_user_permission();
+
+                return true;
             }
 
 
@@ -645,7 +644,11 @@ namespace bank
                 BankUser user = BankUser::make_new(get_unique_username());
 
                 tu::platform::clear_terminal();
-                read_user_info(user, "Add User Info:");
+                if(!read_user_info(user, "Add User Info:"))
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
                 switch (user.save_with_result())
                 {
@@ -677,7 +680,11 @@ namespace bank
 
                 tu::platform::clear_terminal();
                 user.print_user_details();
-                read_user_info(user, "Update User Info:");
+                if(!read_user_info(user, "Update User Info:"))
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
                 user.set_mode(Mode::update_mode);
 

@@ -241,33 +241,39 @@ namespace tu::input
 
 
     /**
-     * @brief reads a full line from `stdin`, **skipping leading whitespace**
+     * @brief reads a full line from `stdin`
      *
-     * @param prompt     optional prompt to display before reading
-     * @param error_msg  optional message to display on recoverable input failure
+     * @param prompt          optional prompt to display before reading
+     * @param error_msg       optional message to display on recoverable input failure
+     * @param cancel_on_empty if `true`, returns `std::nullopt` when the user enters only whitespace
      *
-     * @return the line read, or `std::nullopt` on `EOF`
-     *
-     * @note `std::ws` skips leading whitespace including leftover newlines from previous input
+     * @return the line read, `std::nullopt` on EOF, or `std::nullopt` if `cancel_on_empty` and input is blank
      */
-    inline std::optional<std::string> get_line(std::string_view prompt = "", std::string_view error_msg = "")
+    inline std::optional<std::string> get_line(std::string_view prompt = "", std::string_view error_msg = "", bool cancel_on_empty = false)
     {
-        while (true)
+        while(true)
         {
             if(!prompt.empty())
-                std::cout << prompt;
+                std::cout << prompt << std::flush;
+
+            // flush leftover '\n' from any previous >> extraction
+            // only ignore if there's something in the buffer
+            if (std::cin.rdbuf()->in_avail() > 0)
+                        tu::input::discard_rest_of_line();
 
             std::string line;
-            if(std::getline(std::cin >> std::ws, line))
+            if(std::getline(std::cin, line))
+            {
+                if(cancel_on_empty && line.find_first_not_of(" \t\r\n") == std::string::npos)
+                    return std::nullopt;
+
                 return line;
+            }
 
             if(std::cin.eof())
                 return std::nullopt;
 
             std::cout << error_msg << "\n";
-
-            // clear failbit to allow retry if reached
-            // `eofbit` is already handled at this point
             std::cin.clear();
         }
     }
