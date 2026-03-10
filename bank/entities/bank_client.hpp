@@ -180,12 +180,12 @@ namespace bank
             /** @brief serialize this object into a file line, encrypting the PIN */
             [[nodiscard]] std::string encode() const
             {
-                return m_first_name                                                            + std::string(SEPARATOR)
+                return m_first_name                                                           + std::string(SEPARATOR)
                     + m_last_name                                                             + std::string(SEPARATOR)
                     + m_email                                                                 + std::string(SEPARATOR)
                     + m_phone_num                                                             + std::string(SEPARATOR)
                     + m_account_number                                                        + std::string(SEPARATOR)
-                    + utils::encrypt_text(m_pin_code, tu::config::CIPHER_SHIFT) + std::string(SEPARATOR)
+                    + utils::encrypt_text(m_pin_code, tu::config::CIPHER_SHIFT)               + std::string(SEPARATOR)
                     + std::to_string(m_account_balance);
             }
 
