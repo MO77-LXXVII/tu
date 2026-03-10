@@ -37,31 +37,6 @@ namespace bank
      */
     class CurrencyExchange: public PersistentEntity<CurrencyExchange>
     {
-        public:
-
-            // ignore IntelliSense scoping issue 
-            // it gets confused about the scope of nested enums inside CRTP templates
-            /**
-             * @brief return type for `save_with_result()` indicates success or the exact failure reason
-             * 
-             * - `succeeded`                      record was saved successfully
-             * 
-             * - `failed_empty_object`            attempted to save an empty record
-             * 
-             * - `failed_currency_exists`         currency code already exists (add mode only)
-             * 
-             * - `failed_cannot_update_currency`  underlying I/O failure
-            */
-            enum class SaveResult
-            {
-                succeeded,
-                failed_empty_object,
-                failed_currency_exists,
-                failed_invalid_fields,
-                failed_cannot_update_currency
-            };
-
-
             // =========================
             //         Data
             // =========================
@@ -141,6 +116,11 @@ namespace bank
             // =========================
             //    Required CRTP hooks
             // =========================
+
+            [[nodiscard]] bool has_corrupt_fields() const noexcept
+            {
+                return any_field_corrupt(m_country, m_currency_code, m_currency_name);
+            }
 
 
             /** @brief returns the file path for currency exchange records */
@@ -243,30 +223,6 @@ namespace bank
             // =========================
             // Helpers
             // =========================
-
-
-            /**
-             * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
-             * @return `SaveResult` indicating success or the exact failure reason
-             * @see SaveResult
-             */
-            SaveResult save_with_result()
-            {
-                if(is_empty())
-                    return SaveResult::failed_empty_object;
-
-                if(any_field_corrupt(m_country, m_currency_name))
-                    return SaveResult::failed_invalid_fields;
-
-                if(_mode == Mode::add_mode && CurrencyExchange::exists(m_currency_code))
-                    return SaveResult::failed_currency_exists;
-
-                // Delegate to PersistentEntity::save() for the actual I/O
-                if(!save())
-                    return SaveResult::failed_cannot_update_currency;
-
-                return SaveResult::succeeded;
-            }
 
 
             /** @brief returns the string representation of a `Mode` value */

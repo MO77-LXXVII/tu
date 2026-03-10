@@ -72,19 +72,25 @@ namespace bank
     class PersistentEntity
     {
         public:
-            /**
-             * @brief controls the behaviour of `save()`
-             * 
-             * - `empty_mode`:  no-op, `save()` does nothing
-             * 
-             * - `add_mode`:    appends this record to the file
-             * 
-             * - `update_mode`: overwrites the matching record in the file
-             * 
-             * - `delete_mode`: removes the matching record from the file
-             */
-            enum class Mode { empty_mode, add_mode, update_mode, delete_mode };
+            /** @brief controls the behaviour of `save()` */
+            enum class Mode
+            {
+                empty_mode,     ///< no-op, `save()` does nothing
+                add_mode,       ///< appends this record to the file
+                update_mode,    ///< overwrites the matching record in the file
+                delete_mode     ///< removes the matching record from the file
+            };
 
+
+            /** @brief return type for `save_with_result()`; indicates success or the exact failure reason */
+            enum class SaveResult
+            {
+                succeeded,                ///< record was saved successfully
+                failed_empty_object,      ///< attempted to save an empty record
+                failed_invalid_fields,    ///< attempted to save an empty record
+                failed_key_exists,        ///< key already exists (`add_mode` only)
+                failed_io                 ///< underlying I/O failure
+            };
 
             // =========================
             //       Public API 
@@ -150,6 +156,29 @@ namespace bank
             [[nodiscard]] static bool exists(const std::string& key)
             {
                 return find(key).has_value();
+            }
+
+
+            /**
+             * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
+             * @return `SaveResult` indicating success or the exact failure reason
+             * @see SaveResult
+             */
+            SaveResult save_with_result()
+            {
+                if(is_empty())
+                    return SaveResult::failed_empty_object;
+
+                if(self().has_corrupt_fields())
+                    return SaveResult::failed_invalid_fields;
+
+                if(_mode == Mode::add_mode && Derived::exists(self().key()))
+                    return SaveResult::failed_key_exists;
+
+                if(!save())
+                    return SaveResult::failed_io;
+
+                return SaveResult::succeeded;
             }
 
 
@@ -326,5 +355,6 @@ namespace bank
     //   std::string key() const                     → unique identifier
     //   bool matches_key(const std::string&) const  → comparison
     //   static void sort(std::vector<Derived>&)     → custom sort before write
+    //   bool has_corrupt_fields() const noexcept    → separator guard
     // ============================================================
 } // namespace bank

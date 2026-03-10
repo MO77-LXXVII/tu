@@ -38,27 +38,6 @@ namespace bank
     class BankClient : public PersistentEntity<BankClient>, public Person
     {
         public:
-
-            // ignore IntelliSense scoping issue
-            // it gets confused about the scope of nested enums inside CRTP templates
-            /**
-             * @brief return type for `save_with_result()`; indicates success or the exact failure reason
-             * 
-             * - `succeeded`              record was saved successfully
-             * - `failed_empty_object`    attempted to save an empty record
-             * - `failed_account_exists`  account number already exists(add mode only)
-             * - `failed_cannot_update`   underlying I/O failure
-             */
-            enum class SaveResult
-            {
-                succeeded,
-                failed_empty_object,
-                failed_account_exists,
-                failed_invalid_fields,
-                failed_cannot_update
-            };
-
-
             // ignore IntelliSense scoping issue
             // it gets confused about the scope of nested enums inside CRTP templates
             /**
@@ -167,6 +146,11 @@ namespace bank
             //    Required CRTP hooks
             // =========================
 
+            [[nodiscard]] bool has_corrupt_fields() const noexcept
+            {
+                return any_field_corrupt(m_first_name, m_last_name, m_email, m_phone_num, m_pin_code);
+            }
+
 
             /** @brief returns the file path for client records */
             [[nodiscard]] static std::string_view file_name()
@@ -257,35 +241,6 @@ namespace bank
                         return c;
 
                 return std::nullopt;
-            }
-
-
-            // =========================
-            //         Helpers
-            // =========================
-
-
-            /**
-             * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
-             * @return `SaveResult` indicating success or the exact failure reason
-             * @see SaveResult
-             */
-            SaveResult save_with_result()
-            {
-                if(is_empty())
-                    return SaveResult::failed_empty_object;
-
-                if(any_field_corrupt(m_first_name, m_last_name, m_email, m_phone_num, m_pin_code))
-                    return SaveResult::failed_invalid_fields;
-
-                if(_mode == Mode::add_mode && BankClient::exists(m_account_number))
-                    return SaveResult::failed_account_exists;
-
-                // Delegate to PersistentEntity::save() for the actual I/O
-                if(!save())
-                    return SaveResult::failed_cannot_update;
-
-                return SaveResult::succeeded;
             }
 
 

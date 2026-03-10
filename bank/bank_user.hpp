@@ -129,25 +129,6 @@ namespace bank
      */
     class BankUser : public PersistentEntity<BankUser>, public Person
     {
-        public:
-
-            /**
-             * @brief return type for `save_with_result()`; indicates success or the exact failure reason
-             * 
-             * - `succeeded`              record was saved successfully
-             * - `failed_empty_object`    attempted to save an empty record
-             * - `failed_username_exists` username already exists (add mode only)
-             * - `failed_cannot_update`   underlying I/O failure
-             */
-            enum class SaveResult
-            {
-                succeeded,
-                failed_empty_object,
-                failed_username_exists,
-                failed_invalid_fields,
-                failed_cannot_update
-            };
-
             // =========================
             //         Data
             // =========================
@@ -231,6 +212,11 @@ namespace bank
             // =========================
             //    Required CRTP hooks
             // =========================
+
+            [[nodiscard]] bool has_corrupt_fields() const noexcept
+            {
+                return any_field_corrupt(m_first_name, m_last_name, m_email, m_phone_num, m_username, m_password);
+            }
 
 
             /** @brief returns the file path for user records */
@@ -323,34 +309,6 @@ namespace bank
                         return u;
 
                 return std::nullopt;
-            }
-
-
-            // =========================
-            //         Helpers
-            // =========================
-
-            /**
-             * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
-             * @return `SaveResult` indicating success or the exact failure reason
-             * @see SaveResult
-             */
-            SaveResult save_with_result()
-            {
-                if(is_empty())
-                    return SaveResult::failed_empty_object;
-
-                if(any_field_corrupt(m_first_name, m_last_name, m_email, m_phone_num, m_username, m_password))
-                    return SaveResult::failed_invalid_fields;
-
-                if(_mode == Mode::add_mode && BankUser::exists(m_username))
-                    return SaveResult::failed_username_exists;
-
-                // Delegate to PersistentEntity::save() for the actual I/O
-                if(!save())
-                    return SaveResult::failed_cannot_update;
-
-                return SaveResult::succeeded;
             }
 
 
