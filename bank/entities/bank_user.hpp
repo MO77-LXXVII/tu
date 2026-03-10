@@ -406,6 +406,10 @@ namespace bank
              */
             static Permission set_user_permission()
             {
+                std::cout << "Grant full admin permissions? (y/n): ";
+                if(tu::input::get_yes_no(""))
+                    return Permission::All;
+
                 Permission granted = Permission::None;
 
                 constexpr Permission all_permissions[] =
