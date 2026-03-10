@@ -220,20 +220,35 @@ namespace tu::input
     /**
      * @brief reads a **whitespace-delimited word** from `stdin`, retrying until a valid value is read
      *
-     * @param prompt     optional prompt to display before each read
-     * @param error_msg  message to display on invalid input
+     * @param prompt          optional prompt to display before each read
+     * @param error_msg       message to display on invalid input
+     * @param cancel_on_empty if `true`, returns `std::nullopt` when the user presses Enter with no input
      *
-     * @return the first successfully parsed word
+     * @return the word read, or `std::nullopt` if `cancel_on_empty` and input is blank
      */
-    inline std::string get_string(std::string_view prompt = "", std::string_view error_msg = "")
+    inline std::optional<std::string> get_string(std::string_view prompt = "", std::string_view error_msg = "",  bool cancel_on_empty = false)
     {
         while (true)
         {
             if(!prompt.empty())
                 std::cout << prompt;
 
+            // Check for empty input first using `peek()`
+            if(cancel_on_empty)
+            {
+                int next = std::cin.peek();
+
+                if(next == '\n' || next == EOF)
+                {
+                    if(next == '\n')
+                        std::cin.get();
+
+                    return std::nullopt;
+                }
+            }
+
             if(auto result = try_get_input<std::string>(""))
-                return *result;
+                return result.value();
 
             std::cout << error_msg << "\n";
         }

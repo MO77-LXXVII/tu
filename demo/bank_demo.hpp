@@ -137,13 +137,23 @@ void run_bank()
                 bank::BankClient::delete_client();
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::DeleteClient))
-            .add_item("Find Client", [&]
-            {
-                tu::platform::clear_terminal();
-                bank::BankClient found_user = bank::BankClient::find(bank::BankClient::get_valid_account_num()).value();
-                found_user.print_client_details();
-                tu::input::get_menu_key(tu::dim("Press Enter..."));
-            }, perm(bank::Permission::FindClient))
+                .add_item("Find Client", [&]
+                {
+                    tu::platform::clear_terminal();
+
+                    auto account_num = bank::BankClient::get_valid_account_num();
+
+                    if(!account_num)
+                    {
+                        tu::input::get_menu_key(tu::dim("Press Enter..."));
+                        return;
+                    }
+
+                    bank::BankClient found = bank::BankClient::find(account_num.value()).value();
+
+                    found.print_client_details();
+                    tu::input::get_menu_key(tu::dim("Press Enter..."));
+                }, perm(bank::Permission::FindClient))
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
     });
@@ -179,8 +189,19 @@ void run_bank()
             .add_item("Find User", [&]
             {
                 tu::platform::clear_terminal();
-                bank::BankUser found_user = bank::BankUser::find(bank::BankUser::get_valid_username()).value();
-                found_user.print_user_details();
+
+                auto username = bank::BankUser::get_valid_username();
+
+                if(!username)
+                {
+                    tu::input::get_menu_key(tu::dim("Press Enter..."));
+                    return;
+                }
+
+                bank::BankUser found = bank::BankUser::find(username.value()).value();
+
+                found.print_user_details();
+
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::FindUser))
             .add_separator()
@@ -207,10 +228,33 @@ void run_bank()
                 bank::TransactionLog::list_all();
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
+                            .add_item("Find Client", [&]
+                {
+                    tu::platform::clear_terminal();
+
+                    auto username = bank::BankClient::get_valid_account_num();
+
+                    if(!username) return;
+
+                    bank::BankClient found = bank::BankClient::find(*username).value();
+
+                    found.print_client_details();
+                    tu::input::get_menu_key(tu::dim("Press Enter..."));
+                }, perm(bank::Permission::FindClient))
             .add_item("View by Account", [&]
             {
                 tu::platform::clear_terminal();
-                bank::TransactionLog::list_by_account(bank::BankClient::get_valid_account_num());
+
+                    auto username = bank::BankClient::get_valid_account_num();
+
+                    if(!username)
+                    {
+                        tu::input::get_menu_key(tu::dim("Press Enter..."));
+                        return;
+                    }
+
+                    bank::TransactionLog::list_by_account(username.value());
+
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_separator()
@@ -294,9 +338,16 @@ void run_bank()
             .add_item("Find Currency", [&]
             {
                 tu::platform::clear_terminal();
-                std::vector<bank::CurrencyExchange> currencies_with_same_code = bank::CurrencyExchange::find_all(bank::CurrencyExchange::get_valid_currency_code()).value();
+                auto code = bank::CurrencyExchange::get_valid_currency_code();
 
-                bank::CurrencyExchange::print_currency_details(currencies_with_same_code);
+                if(!code)
+                {
+                    tu::input::get_menu_key(tu::dim("Press Enter..."));
+                    return;
+                }
+
+                std::vector<bank::CurrencyExchange> currencies = bank::CurrencyExchange::find_all(code.value()).value();
+                bank::CurrencyExchange::print_currency_details(currencies);
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             })
             .add_item("Currency Calculator", [&]

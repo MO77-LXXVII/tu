@@ -396,32 +396,36 @@ namespace bank
 
 
             /** @brief prompts for a unique (non-existing) account number */
-            static std::string get_unique_account_num()
+            static std::optional<std::string> get_unique_account_num()
             {
-                std::string account_num = tu::input::get_string("Enter client account number: ", "");
-
-                while(BankClient::exists(account_num))
+                while(true)
                 {
-                    std::cout << "\nAccount number already in use, choose another.\n";
-                    account_num = tu::input::get_string("Enter client account number: ", "");
-                }
+                    auto account_num = tu::input::get_string("Enter client account number: ", "", true);
+                    if(!account_num)
+                        return std::nullopt;
 
-                return account_num;
+                    if(!BankClient::exists(account_num.value()))
+                        return account_num;
+
+                    std::cout << "\nAccount number already in use, choose another.\n";
+                }
             }
 
 
             /** @brief prompts for an existing account number, loops until valid */
-            static std::string get_valid_account_num()
+            static std::optional<std::string> get_valid_account_num()
             {
-                std::string account_num = tu::input::get_string("Enter client account number: ", "");
-
-                while(!BankClient::exists(account_num))
+                while(true)
                 {
-                    std::cout << "\nNot a valid account number.\n";
-                    account_num = tu::input::get_string("Enter client account number: ", "");
-                }
+                    auto account_num = tu::input::get_string("Enter client account number: ", "", true);
+                    if(!account_num)
+                        return std::nullopt;
 
-                return account_num;
+                    if(BankClient::exists(account_num.value()))
+                        return account_num;
+
+                    std::cout << "\nNot a valid account number.\n";
+                }
             }
 
 
@@ -535,10 +539,23 @@ namespace bank
             /** @brief prompt the user to find and update an existing client */
             static void update_client()
             {
-                auto opt = BankClient::find(get_valid_account_num());
-                if(!opt) return;
+                auto account_num = get_valid_account_num();
+                if(!account_num)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
-                BankClient client = *opt;
+                auto opt = BankClient::find(account_num.value());
+
+                // invariant: `get_valid_account_num()` ensures account exists
+                if(!opt)
+                {
+                    std::cout << "Client not found.\n";
+                    return;
+                }
+
+                BankClient client = opt.value();
 
                 tu::platform::clear_terminal();
                 client.print_client_details();
@@ -573,11 +590,21 @@ namespace bank
             /** @brief prompt the user to find and delete an existing client */
             static void delete_client()
             {
-                std::string account_num = get_valid_account_num();
-                auto        opt         = BankClient::find(account_num);
-
-                if(!opt)
+                auto account_num = get_valid_account_num();
+                if(!account_num)
+                {
+                    std::cout << "Operation cancelled.\n";
                     return;
+                }
+
+                auto opt = BankClient::find(*account_num);
+
+                // invariant: `get_valid_account_num()` ensures account exists
+                if(!opt)
+                {
+                    std::cout << "Client not found.\n";
+                    return;
+                }
 
                 BankClient client = *opt;
 
@@ -594,7 +621,7 @@ namespace bank
                 client.save();
 
                 tu::platform::clear_terminal();
-                std::cout << "Account(" << account_num << ") deleted successfully.\n";
+                std::cout << "Account(" << account_num.value() << ") deleted successfully.\n";
             }
 
 
@@ -606,8 +633,21 @@ namespace bank
             /** @brief UI flow for depositing into a client's account */
             static void ui_deposit(const std::string& performed_by = "")
             {
-                auto opt = BankClient::find(get_valid_account_num());
-                if(!opt) return;
+                auto account_num = get_valid_account_num();
+                if(!account_num)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                auto opt = BankClient::find(*account_num);
+                
+                // invariant: `get_valid_account_num()` ensures account exists
+                if(!opt)
+                {
+                    std::cout << "Client not found.\n";
+                    return;
+                }
 
                 BankClient client = *opt;
 
@@ -649,8 +689,21 @@ namespace bank
             /** @brief UI flow for withdrawing from a client's account */
             static void ui_withdraw(const std::string& performed_by = "")
             {
-                auto opt = BankClient::find(get_valid_account_num());
-                if(!opt) return;
+                auto account_num = get_valid_account_num();
+                if(!account_num)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                auto opt = BankClient::find(*account_num);
+                
+                // invariant: `get_valid_account_num()` ensures account exists
+                if(!opt)
+                {
+                    std::cout << "Client not found.\n";
+                    return;
+                }
 
                 BankClient client = *opt;
 
@@ -687,12 +740,35 @@ namespace bank
             static void ui_transfer(const std::string& performed_by = "")
             {
                 std::cout << "From account:\n";
-                auto from_opt = BankClient::find(get_valid_account_num());
-                if(!from_opt) return;
+                auto from_num = get_valid_account_num();
+                if(!from_num)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
                 std::cout << "To account:\n";
-                auto to_opt = BankClient::find(get_valid_account_num());
-                if(!to_opt) return;
+                auto to_num = get_valid_account_num();
+                if(!to_num)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                // invariant: `get_valid_account_num()` ensures account exists
+                auto from_opt = BankClient::find(*from_num);
+                if(!from_opt)
+                {
+                    std::cout << "First Client not found.\n";
+                    return;
+                }
+
+                auto to_opt = BankClient::find(*to_num);
+                if(!to_opt)
+                {
+                    std::cout << "Second Client not found.\n";
+                    return;
+                }
 
                 BankClient from = *from_opt;
                 BankClient to   = *to_opt;

@@ -299,7 +299,7 @@ namespace bank
              * @return the matching user, or `std::nullopt` if credentials do not match
              */
             [[nodiscard]] static std::optional<BankUser> find(const std::string& username,
-                                                            const std::string& password)
+                                                              const std::string& password)
             {
                 for(const auto& u : load_all())
                     if(u.m_username == username && u.m_password == password)
@@ -496,14 +496,20 @@ namespace bank
 
                 while (true)
                 {
-                    std::string username = tu::input::get_string("Enter Username: ", "");
-                    std::string password = tu::input::get_string("Enter Password: ", "");
+                    auto username = tu::input::get_string("Enter Username: ", "");
+                    auto password = tu::input::get_string("Enter Password: ", "");
 
-                    auto result = find(username, password);
+                    if(!username || !password)
+                    {
+                        std::cout << "Operation cancelled.\n";
+                        return false;
+                    }
+
+                    auto result = find(username.value(), password.value());
 
                     if(result)
                     {
-                        *this = *result;
+                        *this = result.value();
                         return true;
                     }
 
@@ -536,32 +542,39 @@ namespace bank
 
 
             /** @brief prompts for a unique (non-existing) username */
-            static std::string get_unique_username()
+            static std::optional<std::string> get_unique_username()
             {
-                std::string username = tu::input::get_string("Enter user username: ", "");
-
-                while (BankUser::exists(username))
+                while(true)
                 {
-                    std::cout << "\nUsername already in use, choose another.\n";
-                    username = tu::input::get_string("Enter user username: ", "");
-                }
+                    auto username = tu::input::get_string("Enter user username: ", "", true);
+                    if(!username)
+                        return std::nullopt;
 
-                return username;
+                    if(!BankUser::exists(username.value()))
+                        return username;
+
+                    std::cout << "\nUsername already in use, choose another.\n";
+                }
             }
 
 
             /** @brief prompts for an existing username, loops until valid */
-            static std::string get_valid_username()
+            static std::optional<std::string> get_valid_username()
             {
-                std::string username = tu::input::get_string("Enter username: ", "");
-
-                while (!BankUser::exists(username))
+                while(true)
                 {
-                    std::cout << "\nNot a valid username.\n";
-                    username = tu::input::get_string("Enter username: ", "");
-                }
+                    auto username = tu::input::get_string("Enter username: ", "", true);
+                    if(!username)
+                    {
+                        std::cout << "Operation cancelled.\n";
+                        return std::nullopt;
+                    }
 
-                return username;
+                    if(BankUser::exists(*username))
+                        return username;
+
+                    std::cout << "\nNot a valid username.\n";
+                }
             }
 
 
@@ -641,7 +654,14 @@ namespace bank
             /** @brief prompt the user to add a new user and save it */
             static void add_user()
             {
-                BankUser user = BankUser::make_new(get_unique_username());
+                auto username = get_unique_username();
+                if(!username)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                BankUser user = BankUser::make_new(std::move(username.value()));
 
                 tu::platform::clear_terminal();
                 if(!read_user_info(user, "Add User Info:"))
@@ -673,10 +693,23 @@ namespace bank
             /** @brief prompt the user to find and update an existing user */
             static void update_user()
             {
-                auto opt = BankUser::find(get_valid_username());
-                if(!opt) return;
+                auto username = get_valid_username();
+                if(!username)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
 
-                BankUser user = *opt;
+                auto opt = BankUser::find(username.value());
+
+                // invariant: `get_valid_username()` ensures username exists
+                if(!opt)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                BankUser user = opt.value();
 
                 tu::platform::clear_terminal();
                 user.print_user_details();
@@ -711,11 +744,17 @@ namespace bank
             /** @brief prompt the user to find and delete an existing user */
             static void delete_user()
             {
-                std::string username = get_valid_username();
-                auto        opt      = BankUser::find(username);
-                if(!opt) return;
+                auto username = get_valid_username();
+                if(!username)
+                    return;
 
-                BankUser user = *opt;
+                auto opt = BankUser::find(username.value());
+
+                // invariant: `get_valid_username()` ensures username exists
+                if(!opt)
+                    return;
+
+                BankUser user = opt.value();
 
                 tu::platform::clear_terminal();
                 user.print_user_details();
@@ -730,8 +769,7 @@ namespace bank
                 user.save();
 
                 tu::platform::clear_terminal();
-                std::cout << "User (" << username << ") deleted successfully.\n";
+                std::cout << "User (" << username.value() << ") deleted successfully.\n";
             }
     };
-
 } // namespace bank

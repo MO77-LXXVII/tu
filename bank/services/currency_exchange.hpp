@@ -250,19 +250,22 @@ namespace bank
              * @param msg prompt message
              * @return a valid, uppercased ISO currency code that exists in the system
              */
-            static std::string get_valid_currency_code(std::string_view msg = "Enter currency code: ")
+            static std::optional<std::string> get_valid_currency_code(std::string_view msg = "Enter currency code: ")
             {
                 while(true)
                 {
-                    std::string currency_code = tu::input::get_string(msg, "");
+                    // std::string currency_code = tu::input::get_string(msg, "");
+                    auto currency_code = tu::input::get_string(msg, "", true);
+                    if(!currency_code)
+                        return std::nullopt;
 
-                    std::transform(currency_code.begin(), currency_code.end(), currency_code.begin(), [](unsigned char ch)
+                    std::transform(currency_code.value().begin(), currency_code.value().end(), currency_code.value().begin(), [](unsigned char ch)
                     {
                         return static_cast<char>(std::toupper(ch));
                     });
 
-                    if(CurrencyExchange::exists(currency_code))
-                        return currency_code;
+                    if(CurrencyExchange::exists(currency_code.value()))
+                        return currency_code.value();
 
                     std::cout << "\nNot a valid currency code.\n";
                 }
@@ -388,7 +391,14 @@ namespace bank
             /** @brief prompt the user to add a new currency entry and save it */
             static void add_currency()
             {
-                CurrencyExchange currency = CurrencyExchange::make_new(get_valid_currency_code());
+                auto code = get_valid_currency_code();
+                if(!code)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                CurrencyExchange currency = CurrencyExchange::make_new(std::move(code.value()));
 
                 tu::platform::clear_terminal();
                 if(!read_currency_info(currency, "Add Currency Data:"))
@@ -440,10 +450,17 @@ namespace bank
             /** @brief prompt the user to select and update an existing currency entry */
             static void update_currency()
             {
-                auto from_matches = CurrencyExchange::find_all(get_valid_currency_code());
+                auto code = get_valid_currency_code();
+                if(!code)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                auto from_matches = CurrencyExchange::find_all(code.value());
 
                 tu::platform::clear_terminal();
-                CurrencyExchange selected = select_from_matches(*from_matches);
+                CurrencyExchange selected = select_from_matches(from_matches.value());
 
                 tu::platform::clear_terminal();
                 selected.print_currency_details();
@@ -497,14 +514,30 @@ namespace bank
             static void convert_currency()
             {
                 // `get_valid_currency_code()` guarantees existence
-                auto from_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert from: "));
-                auto to_matches = CurrencyExchange::find_all(get_valid_currency_code("currency code to convert to: "));
+                auto from_code = get_valid_currency_code("currency code to convert from: ");
+                if(!from_code)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                auto to_code = get_valid_currency_code("currency code to convert to: ");
+                if(!to_code)
+                {
+                    std::cout << "Operation cancelled.\n";
+                    return;
+                }
+
+                // invariant: `get_valid_currency_code()` ensures currency exists
+
+                auto from_matches = CurrencyExchange::find_all(from_code.value());
+                auto to_matches   = CurrencyExchange::find_all(to_code.value());
 
                 tu::platform::clear_terminal();
-                CurrencyExchange source = select_from_matches(*from_matches);
+                CurrencyExchange source = select_from_matches(from_matches.value());
 
                 tu::platform::clear_terminal();
-                CurrencyExchange target = select_from_matches(*to_matches);
+                CurrencyExchange target = select_from_matches(to_matches.value());
 
                 tu::platform::clear_terminal();
 
