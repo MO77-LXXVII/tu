@@ -13,7 +13,9 @@
 #include "../platform/platform.hpp"
 #include "../utils/string_utils.hpp"
 #include "../utils/utils.hpp"
+
 #include "bank/persistent_entity.hpp"
+#include "bank/transaction_log.hpp"
 
 // ============================================================
 // BankClient
@@ -561,7 +563,7 @@ namespace bank
 
 
             /** @brief UI flow for depositing into a client's account */
-            static void ui_deposit()
+            static void ui_deposit(const std::string& performed_by = "")
             {
                 auto opt = BankClient::find(get_valid_account_num());
                 if(!opt) return;
@@ -588,6 +590,7 @@ namespace bank
                 tu::platform::clear_terminal();
                 if(client.deposit(amount))
                 {
+                    TransactionLog::record_deposit(client.m_account_number, amount, performed_by);
                     std::cout << "Deposit successful.\n";
                     client.print_client_details();
                 }
@@ -597,7 +600,7 @@ namespace bank
 
 
             /** @brief UI flow for withdrawing from a client's account */
-            static void ui_withdraw()
+            static void ui_withdraw(const std::string& performed_by = "")
             {
                 auto opt = BankClient::find(get_valid_account_num());
                 if(!opt) return;
@@ -624,6 +627,7 @@ namespace bank
                 tu::platform::clear_terminal();
                 if(client.withdraw(amount))
                 {
+                    TransactionLog::record_withdraw(client.m_account_number, amount, performed_by);
                     std::cout << "Withdrawal successful.\n";
                     client.print_client_details();
                 }
@@ -633,7 +637,7 @@ namespace bank
 
 
             /** @brief UI flow for transferring between two client accounts */
-            static void ui_transfer()
+            static void ui_transfer(const std::string& performed_by = "")
             {
                 std::cout << "From account:\n";
                 auto from_opt = BankClient::find(get_valid_account_num());
@@ -678,6 +682,7 @@ namespace bank
                 switch(from.transfer(amount, to))
                 {
                     case TransferResult::success:
+                        TransactionLog::record_transfer(from.m_account_number, to.m_account_number, amount, performed_by);
                         std::cout << tu::green("Transfer successful.\n");
                         break;
 
