@@ -47,6 +47,7 @@ namespace bank
         Deposit      = 1 << 10,
         Withdraw     = 1 << 11,
         Transfer     = 1 << 12,
+        ViewHistory  = 1 << 13,
 
         All =
             ShowClients   |
@@ -61,7 +62,8 @@ namespace bank
             FindUser      |
             Deposit       |
             Withdraw      |
-            Transfer
+            Transfer      |
+            ViewHistory
     };
 
 
@@ -454,6 +456,15 @@ namespace bank
                 return has_permission(m_permissions,
                     P::ShowUsers  | P::AddUser  | P::UpdateUser |
                     P::DeleteUser | P::FindUser);
+            }
+
+
+            /** @brief returns `true` if this user has at least one transaction-related permission */
+            [[nodiscard]] bool has_any_transaction_permission() const noexcept
+            {
+                using P = Permission;
+                return has_permission(m_permissions,
+                    P::Deposit | P::Withdraw | P::Transfer | P::ViewHistory);
             }
 
 
