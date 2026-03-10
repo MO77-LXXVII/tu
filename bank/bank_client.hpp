@@ -294,9 +294,18 @@ namespace bank
                 if(amount <= 0 || amount > tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT - m_account_balance)
                     return false;
 
+                double prev = m_account_balance;
+
                 m_account_balance += amount;
                 set_mode(Mode::update_mode);
-                return save_with_result() == SaveResult::succeeded;
+
+                if(save_with_result() != SaveResult::succeeded)
+                {
+                    m_account_balance = prev;
+                    return false;
+                }
+
+                return true;
             }
 
 
@@ -310,9 +319,18 @@ namespace bank
                 if(amount <= 0 || amount > m_account_balance)
                     return false;
 
+                double prev = m_account_balance;
+
                 m_account_balance -= amount;
                 set_mode(Mode::update_mode);
-                return save_with_result() == SaveResult::succeeded;
+
+                if(save_with_result() != SaveResult::succeeded)
+                {
+                    m_account_balance = prev;
+                    return false;
+                }
+
+                return true;
             }
 
 
