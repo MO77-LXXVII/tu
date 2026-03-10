@@ -144,10 +144,18 @@ namespace bank
                 log.save();
             }
 
+            // =========================
+            //    Required Cache hooks
+            // =========================
+
+
+            [[nodiscard]] static constexpr std::string_view class_name() { return "TransactionLog"; }
+
 
             // =========================
             //    Required CRTP hooks
             // =========================
+
 
             /** @brief returns the file path for transaction records */
             [[nodiscard]] static std::string_view file_name()

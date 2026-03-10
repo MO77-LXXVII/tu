@@ -155,6 +155,14 @@ namespace bank
 
 
             // =========================
+            //    Required Cache hooks
+            // =========================
+
+
+            [[nodiscard]] static constexpr std::string_view class_name() { return "BankClient"; }
+
+
+            // =========================
             //    Required CRTP hooks
             // =========================
 

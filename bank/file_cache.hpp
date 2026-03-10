@@ -50,13 +50,13 @@ namespace bank
              */
             [[nodiscard]] static const std::vector<Derived>& load()
             {
-                if (s_cache.has_value())
+                if(s_cache.has_value())
                 {
-                    LOG_INFO("Cached data used");
+                    LOG_INFO("(" + std::string(Derived::class_name()) + "): cached data used");
                     return *s_cache;
                 }
 
-                LOG_INFO("Caching new file data");
+                LOG_INFO("(" + std::string(Derived::class_name()) + "): caching new file data");
                 return m_populate();
             }
 
@@ -71,7 +71,7 @@ namespace bank
              */
             static void invalidate() noexcept
             {
-                LOG_INFO("Cache no longer valid");
+                LOG_INFO("(" + std::string(Derived::class_name()) + "): cache invalidated");
                 s_cache.reset(); // std::optional calls std::vector ~destructor()
             }
 
