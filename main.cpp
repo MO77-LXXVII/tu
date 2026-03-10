@@ -1,5 +1,5 @@
-#include "bank_demo.hpp"
-#include "bank_demo_raw.hpp"
+#include "demo/bank_demo.hpp"
+#include "demo/bank_demo_raw.hpp"
 
 int main()
 {
