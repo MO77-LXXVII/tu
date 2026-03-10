@@ -21,6 +21,7 @@
 #include "bank/bank_client.hpp"
 #include "bank/bank_user.hpp"
 #include "bank/currency_exchange.hpp"
+#include "bank/transaction_log.hpp"
 
 /**
  * @brief Returns a visibility checker for the given permission.
@@ -84,7 +85,7 @@ void run_bank()
     auto perm = for_user(bank_user);
 
     enum class MenuID {main_menu, users_menu, clients_menu,
-                       transaction_menu, transfer_menu, transfer_internal,
+                       transaction_menu, history_menu, transfer_menu, transfer_internal,
                        currency_menu, settings_menu};
     tu::MenuNavigator<MenuID> nav;
 
@@ -191,9 +192,29 @@ void run_bank()
     {
         return tu::Menu::create("Transactions")
             .add_item("Transfer", [&]{ n.push(MenuID::transfer_menu); })
-            .add_item("History", nullptr, [&]{ return false; })
+            .add_item("History",  [&]{ n.push(MenuID::history_menu);  })
             .add_separator()
             .add_item("Back to Main", [&]{ n.pop(); });
+    });
+
+    // === HISTORY MENU ===
+    nav.add(MenuID::history_menu, [&](tu::MenuNavigator<MenuID>& n)
+    {
+        return tu::Menu::create("Transaction History")
+            .add_item("View All", [&]
+            {
+                tu::platform::clear_terminal();
+                bank::TransactionLog::list_all();
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
+            })
+            .add_item("View by Account", [&]
+            {
+                tu::platform::clear_terminal();
+                bank::TransactionLog::list_by_account(bank::BankClient::get_valid_account_num());
+                tu::input::get_menu_key(tu::dim("Press Enter..."));
+            })
+            .add_separator()
+            .add_item("Back", [&]{ n.pop(); });
     });
 
     // === TRANSFER MENU ===
@@ -214,19 +235,19 @@ void run_bank()
             .add_item("Transfer", [&] 
             {
                 // move money from account to another
-                bank::BankClient::ui_transfer();
+                bank::BankClient::ui_transfer(USERNAME);
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Transfer))
 
             .add_item("Deposit", [&]
             {
-                bank::BankClient::ui_deposit();
+                bank::BankClient::ui_deposit(USERNAME);
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Deposit))
 
             .add_item("Withdraw", [&]
             {
-                bank::BankClient::ui_withdraw();
+                bank::BankClient::ui_withdraw(USERNAME);
                 tu::input::get_menu_key(tu::dim("Press Enter..."));
             }, perm(bank::Permission::Withdraw))
 
