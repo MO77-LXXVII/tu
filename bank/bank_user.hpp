@@ -474,6 +474,8 @@ namespace bank
                 return granted;
             }
 
+
+            /** @brief returns `true` if this user has at least one client-related permission */
             [[nodiscard]] bool has_any_client_permission() const noexcept
             {
                 using P = Permission;
@@ -482,6 +484,8 @@ namespace bank
                     P::DeleteClient | P::FindClient);
             }
 
+
+            /** @brief returns `true` if this user has at least one user-related permission */
             [[nodiscard]] bool has_any_user_permission() const noexcept
             {
                 using P = Permission;
