@@ -66,14 +66,12 @@ namespace bank
              * - `success`                   transfer completed successfully
              * - `recipient_cap_exceeded`    transfer would exceed recipient's maximum balance
              * - `save_failed`               I/O failure during withdraw or deposit
-             * - `critical_rollback_failed`  withdraw succeeded but deposit failed and rollback also failed
              */
             enum class TransferResult
             {
                 success,
                 recipient_cap_exceeded,
-                save_failed,
-                critical_rollback_failed
+                save_failed
             };
 
 
@@ -334,34 +332,79 @@ namespace bank
             }
 
 
+        private:
+            /**
+             * @brief adjusts the account balance by `delta` in memory only; no disk write
+             *
+             * used by `transfer()` to stage both sides before a single atomic `_write_all()`.
+             * positive `delta` = credit, negative `delta` = debit.
+             *
+             * @param delta the amount to add (positive) or subtract (negative)
+             * @return `true` if the adjustment is valid and was applied, `false` otherwise
+             */
+            bool m_adjust_balance(double delta)
+            {
+                const double result = m_account_balance + delta;
+
+                if(result < 0 || result > tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
+                    return false;
+
+                m_account_balance = result;
+
+                return true;
+            }
+
+
+        public:
             /**
              * @brief transfer an amount from this account to a destination account
+             *
+             * uses a two-phase approach to ensure atomicity:
+             * both balances are adjusted in memory first, then persisted in a single `_write_all()`.
+             * if the write fails, both in-memory balances are restored — disk is never touched.
+             *
              * @param amount      the amount to transfer
              * @param destination the recipient client
              * @return `TransferResult` indicating success or the exact failure reason
-             * @note if deposit to destination fails, attempts to roll back the withdrawal
              */
             TransferResult transfer(double amount, BankClient& destination)
             {
-                if(destination.m_account_balance + amount > tu::config::MAXIMUM_ALLOWED_BALANCE_PER_CLIENT)
-                    return TransferResult::recipient_cap_exceeded;
-
-                if(!withdraw(amount))
+                // stage both changes in memory
+                if(!m_adjust_balance(-amount))
                     return TransferResult::save_failed;
 
-                if(!destination.deposit(amount))
+                if(!destination.m_adjust_balance(amount))
                 {
-                    // Attempt rollback
-                    if(!deposit(amount))
-                    {
-                        const std::string message = "CRITICAL: Transfer rollback failed for client("
-                                                    + full_name()
-                                                    + "), Amount: "
-                                                    + std::to_string(amount);
-                        LOG_EXCEPTION(message);
-                        return TransferResult::critical_rollback_failed;
-                    }
+                    m_adjust_balance(amount); // restore source
+                    return TransferResult::recipient_cap_exceeded;
+                }
 
+                auto records = load_all();
+
+                auto src_it = std::find_if(records.begin(), records.end(), [&](const BankClient& c)
+                {
+                    return c.m_account_number == m_account_number;
+                });
+
+                auto dst_it = std::find_if(records.begin(), records.end(), [&](const BankClient& c)
+                {
+                    return c.m_account_number == destination.m_account_number;
+                });
+
+                if(src_it == records.end() || dst_it == records.end())
+                {
+                    m_adjust_balance(amount);              // restore source if record is not found
+                    destination.m_adjust_balance(-amount); // restore destination
+                    return TransferResult::save_failed;
+                }
+
+                src_it->m_account_balance = m_account_balance;
+                dst_it->m_account_balance = destination.m_account_balance;
+
+                if(!save_all(records))
+                {
+                    m_adjust_balance(amount);              // restore source if file is not (found/accessible)
+                    destination.m_adjust_balance(-amount); // restore destination
                     return TransferResult::save_failed;
                 }
 
@@ -706,10 +749,6 @@ namespace bank
 
                     case TransferResult::recipient_cap_exceeded:
                         std::cout << tu::red("Transfer failed: would exceed recipient's maximum balance.\n");
-                        break;
-
-                    case TransferResult::critical_rollback_failed:
-                        std::cout << bold(tu::red("CRITICAL: rollback failed: contact customer support.\n"));
                         break;
 
                     case TransferResult::save_failed:

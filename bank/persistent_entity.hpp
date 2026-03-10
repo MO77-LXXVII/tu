@@ -283,6 +283,17 @@ namespace bank
 
                 return m_write_all(records);
             }
+
+
+        protected:
+            /**
+             * @brief atomically updates multiple records in a single write
+             * intended for operations that must persist changes to **more than one record in one operation**
+             */
+            static bool save_all(std::vector<Derived>& records)
+            {
+                return m_write_all(records);
+            }
     };
 
     // ============================================================
