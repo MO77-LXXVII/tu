@@ -61,7 +61,7 @@ void print_color_options()
 {
     std::cout << "\n";
     std::cout << "1. > Reset\n";
-    std::cout << "2. " << tu::black  ("> Black")   << "\n";
+    std::cout << "2. " << tu::black  ("> Black") << " (Black is invisible on dark terminals)" << "\n";
     std::cout << "3. " << tu::red    ("> Red")     << "\n";
     std::cout << "4. " << tu::green  ("> Green")   << "\n";
     std::cout << "5. " << tu::yellow ("> Yellow")  << "\n";
