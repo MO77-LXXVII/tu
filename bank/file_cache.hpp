@@ -102,3 +102,9 @@ namespace bank
             }
     };
 } // namespace bank
+
+// ============================================================
+// What each Derived class MUST implement:
+//
+//   static std::string_view class_name()  →  cache diagnostics
+// ============================================================
