@@ -57,6 +57,7 @@ namespace bank
                 succeeded,
                 failed_empty_object,
                 failed_currency_exists,
+                failed_invalid_fields,
                 failed_cannot_update_currency
             };
 
@@ -245,6 +246,18 @@ namespace bank
 
 
             /**
+             * @brief returns true if any field contains the separator sequence
+             * @note used to guard against file corruption before saving
+             */
+            [[nodiscard]] bool has_corrupt_fields() const noexcept
+            {
+                return contains_separator(m_country)
+                    || contains_separator(m_currency_code)
+                    || contains_separator(m_currency_name);
+            }
+
+
+            /**
              * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
              * @return `SaveResult` indicating success or the exact failure reason
              * @see SaveResult
@@ -253,6 +266,9 @@ namespace bank
             {
                 if(is_empty())
                     return SaveResult::failed_empty_object;
+
+                if(has_corrupt_fields())
+                    return SaveResult::failed_invalid_fields;
 
                 if(_mode == Mode::add_mode && CurrencyExchange::exists(m_currency_code))
                     return SaveResult::failed_currency_exists;
@@ -442,6 +458,10 @@ namespace bank
                         std::cout << "Currency data added successfully:\n";
                         user.print_currency_details();
                         break;
+                                        
+                    case SaveResult::failed_invalid_fields:
+                        std::cout << bold(underline(tu::red("Invalid input:"))) << " fields cannot contain '#//#'.\n";
+                        break;
 
                     default:
                         tu::platform::clear_terminal();
@@ -491,6 +511,10 @@ namespace bank
                         tu::platform::clear_terminal();
                         std::cout << "currency data updated successfully:\n";
                         selected.print_currency_details();
+                        break;
+                    
+                    case SaveResult::failed_invalid_fields:
+                        std::cout << bold(underline(tu::red("Invalid input:"))) << " fields cannot contain '#//#'.\n";
                         break;
 
                     default:

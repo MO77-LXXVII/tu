@@ -54,6 +54,7 @@ namespace bank
                 succeeded,
                 failed_empty_object,
                 failed_account_exists,
+                failed_invalid_fields,
                 failed_cannot_update
             };
 
@@ -265,6 +266,20 @@ namespace bank
 
 
             /**
+             * @brief returns true if any field contains the separator sequence
+             * @note used to guard against file corruption before saving
+             */
+            [[nodiscard]] bool has_corrupt_fields() const noexcept
+            {
+                return contains_separator(m_email)
+                    || contains_separator(m_first_name)
+                    || contains_separator(m_last_name)
+                    || contains_separator(m_phone_num)
+                    || contains_separator(m_pin_code);
+            }
+
+
+            /**
              * @brief wraps `save()` and returns a `SaveResult` instead of a plain `bool`
              * @return `SaveResult` indicating success or the exact failure reason
              * @see SaveResult
@@ -273,6 +288,9 @@ namespace bank
             {
                 if(is_empty())
                     return SaveResult::failed_empty_object;
+
+                if(has_corrupt_fields())
+                    return SaveResult::failed_invalid_fields;
 
                 if(_mode == Mode::add_mode && BankClient::exists(m_account_number))
                     return SaveResult::failed_account_exists;
@@ -560,6 +578,10 @@ namespace bank
                         client.print_client_details();
                         break;
 
+                    case SaveResult::failed_invalid_fields:
+                        std::cout << bold(underline(tu::red("Invalid input:"))) << " fields cannot contain '#//#'.\n";
+                        break;
+
                     default:
                         tu::platform::clear_terminal();
                         std::cout << bold(underline(tu::red("An error occurred"))) << " while saving the file.\n";
@@ -588,6 +610,10 @@ namespace bank
                         tu::platform::clear_terminal();
                         std::cout << "Account updated successfully:\n";
                         client.print_client_details();
+                        break;
+
+                    case SaveResult::failed_invalid_fields:
+                        std::cout << bold(underline(tu::red("Invalid input:"))) << " fields cannot contain '#//#'.\n";
                         break;
 
                     default:

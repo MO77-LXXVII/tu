@@ -91,6 +91,16 @@ namespace bank
             // =========================
 
             /**
+             * @brief returns true if the string contains the field separator
+             * @note any field containing "#//#" would corrupt the file on encode/decode
+             */
+            inline static bool contains_separator(std::string_view str)
+            {
+                return str.find(SEPARATOR) != std::string_view::npos;
+            }
+
+
+            /**
              * @brief load all records from the entity's file
              * @return `const` reference to the cached records, empty vector if the file cannot be opened
              * @note calls `Derived::file_name()` and `Derived::decode()` internally
