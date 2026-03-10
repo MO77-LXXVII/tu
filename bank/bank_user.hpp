@@ -33,34 +33,30 @@ namespace bank
         None            = 0,
 
         // -- Clients --
-        ManageClients   = 1 << 0,
-        ShowClients     = 1 << 1,
-        AddClient       = 1 << 2,
-        UpdateClient    = 1 << 3,
-        DeleteClient    = 1 << 4,
-        FindClient      = 1 << 5,
+        ShowClients  = 1 << 0,
+        AddClient    = 1 << 1,
+        UpdateClient = 1 << 2,
+        DeleteClient = 1 << 3,
+        FindClient   = 1 << 4,
 
         // -- Users --
-        ManageUsers     = 1 << 6,
-        ShowUsers       = 1 << 7,
-        AddUser         = 1 << 8,
-        UpdateUser      = 1 << 9,
-        DeleteUser      = 1 << 10,
-        FindUser        = 1 << 11,
+        ShowUsers    = 1 << 5,
+        AddUser      = 1 << 6,
+        UpdateUser   = 1 << 7,
+        DeleteUser   = 1 << 8,
+        FindUser     = 1 << 9,
 
         // -- Transactions --
-        Deposit         = 1 << 12,
-        Withdraw        = 1 << 13,
-        Transfer        = 1 << 14,
+        Deposit      = 1 << 10,
+        Withdraw     = 1 << 11,
+        Transfer     = 1 << 12,
 
         All =
-            ManageClients |
             ShowClients   |
             AddClient     |
             UpdateClient  |
             DeleteClient  |
             FindClient    |
-            ManageUsers   |
             ShowUsers     |
             AddUser       |
             UpdateUser    |
@@ -476,6 +472,22 @@ namespace bank
                 }
 
                 return granted;
+            }
+
+            [[nodiscard]] bool has_any_client_permission() const noexcept
+            {
+                using P = Permission;
+                return has_permission(m_permissions,
+                    P::ShowClients  | P::AddClient  | P::UpdateClient |
+                    P::DeleteClient | P::FindClient);
+            }
+
+            [[nodiscard]] bool has_any_user_permission() const noexcept
+            {
+                using P = Permission;
+                return has_permission(m_permissions,
+                    P::ShowUsers  | P::AddUser  | P::UpdateUser |
+                    P::DeleteUser | P::FindUser);
             }
 
 
