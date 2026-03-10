@@ -272,16 +272,16 @@ namespace bank
 
 
             /**
-             * @brief sort records by permission level ascending
+             * @brief sort records by permission level *descending*
              * @param records the records to sort in place
-             */
+            */
             static void sort(std::vector<BankUser>& records)
             {
                 // `stable_sort()` preserves the relative order of records with equal permissions,
                 // allowing users to rely on consistent ordering between saves
                 std::stable_sort(records.begin(), records.end(), [](const BankUser& a, const BankUser& b)
                 {
-                    return a.m_permissions < b.m_permissions;
+                    return a.m_permissions > b.m_permissions;
                 });
             }
 
